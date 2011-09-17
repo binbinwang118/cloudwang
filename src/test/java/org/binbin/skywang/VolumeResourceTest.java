@@ -44,7 +44,6 @@ public class VolumeResourceTest {
 		    		+ "</volume>"
 		    		+ "</cloudVolumes>";
 		      		      
-//		      URL postUrl = new URL("http://localhost:9095/rs/volume/");
 		      URL postUrl = new URL("http://localhost:8080/cloudwang/rs/volume");
 		      connection = (HttpURLConnection) postUrl.openConnection();
 		      connection.setDoOutput(true);
@@ -60,7 +59,6 @@ public class VolumeResourceTest {
 		      
 		      // Get volume
 		      System.out.println("*** get volume with XML format **");
-//		      URL getUrl = new URL("http://localhost:9095/customers/1");
 		      URL getUrl = new URL("http://localhost:8080/cloudwang/rs/volume/vol-a2b4d5c8");
 		      connection = (HttpURLConnection) getUrl.openConnection();
 		      connection.setRequestMethod("GET");

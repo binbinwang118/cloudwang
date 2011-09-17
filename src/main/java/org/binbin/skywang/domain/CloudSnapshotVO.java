@@ -54,7 +54,7 @@ public class CloudSnapshotVO {
 		return snapshotMethod;
 	}
 
-	@XmlElementRef
+	@XmlElement(name = "snapshot")
 	public List<SnapshotVO> getSnapshotVOList() {
 		return snapshotVOList;
 	}

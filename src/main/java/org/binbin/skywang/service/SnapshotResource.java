@@ -125,8 +125,10 @@ public class SnapshotResource extends BaseCloudService {
 	
 	@POST
 	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-	public Response createSnapshot(CloudSnapshotVO createSnapshot) {
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+	public CloudSnapshotVO createSnapshot(CloudSnapshotVO createSnapshot) {
 		
+		CloudSnapshotVO results = new CloudSnapshotVO();
 		String providerSnapshotId = null;
 		SnapshotVO snapshotVO = new SnapshotVO();
 		List<SnapshotVO> snapshotVOList = new LinkedList<SnapshotVO>();
@@ -146,11 +148,15 @@ public class SnapshotResource extends BaseCloudService {
 		}
 
 		snapshotVOList.add(snapshotVO);
-		createSnapshot.setSnapshotMethod("createSnapshot");
-		createSnapshot.setCloudProvider(provider.getCloudName());
-		createSnapshot.setSnapshotVOList(snapshotVOList);
+		results.setSnapshotMethod("createSnapshot");
+		results.setCloudProvider(provider.getCloudName());
+		results.setSnapshotVOList(snapshotVOList);
 		
-		return Response.created(URI.create("/snapshot/" + snapshotVO.getProviderSnapshotId())).build();
+		return results;
+		
+//		Response
+	
+//		return Response.created(URI.create("/snapshot/" + snapshotVO.getProviderSnapshotId())).build();
 		
 	}
 	

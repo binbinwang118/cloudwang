@@ -54,10 +54,15 @@
 	<version>2.2.2.GA</version>
 	</dependency>
     <dependency>
-    <groupId>org.jboss.resteasy</groupId>
+    	<groupId>org.jboss.resteasy</groupId>
     	<artifactId>resteasy-jettison-provider</artifactId>
     	<version>2.2.2.GA</version>
     </dependency>  
+    <dependency>
+      <groupId>org.jboss.resteasy</groupId>
+      <artifactId>async-http-jbossweb</artifactId>
+      <version>2.2.2.GA</version>
+    </dependency>
     <dependency>
         <groupId>org.apache.httpcomponents</groupId>
         <artifactId>httpclient</artifactId>
@@ -107,7 +112,7 @@
         	<version>1.5.0</version>
         	<configuration>
           	    <jbossHome>/var/lib/jboss-as/</jbossHome>
-          	    <serverName>production</serverName>
+          	    <serverName>binbin</serverName>
             	    <fileName>target/cloudwang.war</fileName>
         	</configuration>
       	    </plugin>
