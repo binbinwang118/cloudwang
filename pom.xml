@@ -101,17 +101,16 @@
                     </execution>
                 </executions>
             </plugin>
-     	    <plugin>
+            <plugin>
         	<groupId>org.codehaus.mojo</groupId>
-        	<artifactId>tomcat-maven-plugin</artifactId> 
-        	<version>1.1</version>
+        	<artifactId>jboss-maven-plugin</artifactId>
+        	<version>1.5.0</version>
         	<configuration>
-        		<url>http://localhost:8080/manager</url>
-        		<username>skywang</username>
-        		<password>skywang</password>
-        		<port>8080</port> 
+          	    <jbossHome>/var/lib/jboss-as/</jbossHome>
+          	    <serverName>production</serverName>
+            	    <fileName>target/cloudwang.war</fileName>
         	</configuration>
-    	    </plugin>
+      	    </plugin>
             <plugin>
                 <groupId>org.mortbay.jetty</groupId>
                 <artifactId>maven-jetty-plugin</artifactId>
