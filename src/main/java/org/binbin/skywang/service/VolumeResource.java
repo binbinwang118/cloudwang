@@ -21,8 +21,6 @@ package org.binbin.skywang.service;
 import java.net.URI;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import org.dasein.cloud.CloudException;
 import org.dasein.cloud.InternalException;
 import org.dasein.cloud.compute.Volume;
@@ -52,9 +50,6 @@ public class VolumeResource extends BaseCloudService {
 	
 	private static VolumeSupport volumeSupport = null;
 
-	/** temporary implementation of volumeId and volumeDB, should move to database in the future */
-	private Map<String, VolumeVO> volumeDB = new ConcurrentHashMap<String, VolumeVO>();
-	
 	public VolumeResource(String cloudId) {
 		super(cloudId);
 		volumeSupport = provider.getComputeServices().getVolumeSupport();
@@ -62,11 +57,16 @@ public class VolumeResource extends BaseCloudService {
 	
 	@GET
 	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-	public CloudVolumeVO listVolume() {
+	public CloudVolumeVO listVolume(@Context UriInfo info) {
 		
 		CloudVolumeVO cloudVolumeVO = new CloudVolumeVO();	
 		List<VolumeVO> volumeVOList = new LinkedList<VolumeVO>();
 
+		if(info.getQueryParameters().containsKey("asynch")) {
+			System.out.println("Only POST method can be invoked asynchronously!");
+			return cloudVolumeVO;
+		}
+		
 		try {
 			Iterable<Volume> volume = volumeSupport.listVolumes();
 			for(Volume tmpVolume : volume) {
@@ -91,12 +91,17 @@ public class VolumeResource extends BaseCloudService {
 	@GET
 	@Path("{volumeName}")
 	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public CloudVolumeVO getVolume(@PathParam("volumeName") String volumeName) {
+    public CloudVolumeVO getVolume(@PathParam("volumeName") String volumeName, @Context UriInfo info) {
 		
 		CloudVolumeVO cloudVolumeVO = new CloudVolumeVO();	
 		List<VolumeVO> volumeVOList = new LinkedList<VolumeVO>();
         Volume volumeDasein = null;
         VolumeVO volumeVO = new VolumeVO();
+        
+		if(info.getQueryParameters().containsKey("asynch")) {
+			System.out.println("Only POST method can be invoked asynchronously!");
+			return cloudVolumeVO;
+		}
         
         try {
 			volumeDasein = volumeSupport.getVolume(volumeName);
@@ -128,7 +133,13 @@ public class VolumeResource extends BaseCloudService {
 	@PUT
 	@Path("{volumeName}")
 	@Consumes({"application/xml", "application/json"})
-	public void updateVolume(@PathParam("volumeName") String volumeName, CloudVolumeVO cloudVolumeVO) {
+	public void updateVolume(@PathParam("volumeName") String volumeName, CloudVolumeVO cloudVolumeVO, @Context UriInfo info) {
+		
+		if(info.getQueryParameters().containsKey("asynch")) {
+			System.out.println("Only POST method can be invoked asynchronously!");
+			return;
+		}
+		
 		if(cloudVolumeVO.getVolumeMethod().equals("attachVolume")) {
 			attchVolumeToServer(volumeName, cloudVolumeVO);
 		}
@@ -190,7 +201,12 @@ public class VolumeResource extends BaseCloudService {
 	
 	@DELETE
 	@Path("{volumeName}")
-	public void removeVolume(@PathParam("volumeName") String volumeName) {
+	public void removeVolume(@PathParam("volumeName") String volumeName, @Context UriInfo info) {
+		
+		if(info.getQueryParameters().containsKey("asynch")) {
+			System.out.println("Only POST method can be invoked asynchronously!");
+			return;
+		}
 		
 		try {
 			volumeSupport.remove(volumeName);

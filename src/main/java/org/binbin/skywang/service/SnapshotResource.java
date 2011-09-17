@@ -18,11 +18,8 @@
 
 package org.binbin.skywang.service;
 
-import java.net.URI;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import org.dasein.cloud.CloudException;
 import org.dasein.cloud.InternalException;
 import org.dasein.cloud.compute.Snapshot;
@@ -49,9 +46,6 @@ public class SnapshotResource extends BaseCloudService {
 	
 	private static SnapshotSupport snapshotSupport = null;
 	
-	/** temporary implementation of volumeId and volumeDB, should move to database in the future */
-	private Map<String, CloudSnapshotVO> volumeDB = new ConcurrentHashMap<String, CloudSnapshotVO>();
-	
 	public SnapshotResource(String cloudId) {
 		super(cloudId);
 		snapshotSupport = provider.getComputeServices().getSnapshotSupport();
@@ -64,6 +58,11 @@ public class SnapshotResource extends BaseCloudService {
 		
 		CloudSnapshotVO cloudSnapshotVO = new CloudSnapshotVO();	
 		List<SnapshotVO> snapshotVOList = new LinkedList<SnapshotVO>();
+		
+		if(info.getQueryParameters().containsKey("asynch")) {
+			System.out.println("Only POST method can be invoked asynchronously!");
+			return cloudSnapshotVO;
+		}
 		
 		try {
 			Iterable<Snapshot> snapshot = snapshotSupport.listSnapshots();		
@@ -89,13 +88,18 @@ public class SnapshotResource extends BaseCloudService {
 	@GET
 	@Path("{providerSnapshotId}")
 	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-	public CloudSnapshotVO getSnapshot(@PathParam("providerSnapshotId") String providerSnapshotId) {
+	public CloudSnapshotVO getSnapshot(@PathParam("providerSnapshotId") String providerSnapshotId, @Context UriInfo info) {
 		
 		CloudSnapshotVO cloudSnapshotVO = new CloudSnapshotVO();	
 		List<SnapshotVO> snapshotVOList = new LinkedList<SnapshotVO>(); 
 		
 		Snapshot snapshotDasein = null;
 		SnapshotVO snapshotVO = new SnapshotVO();
+
+		if(info.getQueryParameters().containsKey("asynch")) {
+			System.out.println("Only POST method can be invoked asynchronously!");
+			return cloudSnapshotVO;
+		}
 		
 		try {
 			snapshotDasein = snapshotSupport.getSnapshot(providerSnapshotId);
@@ -153,8 +157,6 @@ public class SnapshotResource extends BaseCloudService {
 		results.setSnapshotVOList(snapshotVOList);
 		
 		return results;
-		
-//		Response
 	
 //		return Response.created(URI.create("/snapshot/" + snapshotVO.getProviderSnapshotId())).build();
 		
@@ -185,7 +187,6 @@ public class SnapshotResource extends BaseCloudService {
 		}else {
 			snapshotVO.setAvailable(false);
 		}
-		
 		snapshotVO.setBudget(0);
 		snapshotVO.setCloud(provider.getCloudName());
 		snapshotVO.setCurrentState(snapshot.getCurrentState());
@@ -202,10 +203,25 @@ public class SnapshotResource extends BaseCloudService {
 		snapshotVO.setProgress(snapshot.getProgress());
 		snapshotVO.setProviderId(provider.getContext().getProviderName());
 		snapshotVO.setProviderSnapshotId(snapshot.getProviderSnapshotId());
-		snapshotVO.setPublics(false);
+		
+		try {
+			boolean publics = snapshotSupport.isPublic(snapshot.getProviderSnapshotId());
+			snapshotVO.setPublics(publics);
+		} catch (InternalException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (CloudException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		snapshotVO.setRegionId(snapshot.getRegionId());
+		
+		/**
+		 * todo, removable depending on 1) owned by me, 2) used by existing template 
+		 * */
 		snapshotVO.setRemovable(false);
-		snapshotVO.setSharable(false);
+		snapshotVO.setSharable(true);
 		snapshotVO.setSizeInGb(snapshot.getSizeInGb());
 		snapshotVO.setSnapshotId(0);
 		snapshotVO.setSnapshotTimestamp(snapshot.getSnapshotTimestamp());
@@ -213,7 +229,5 @@ public class SnapshotResource extends BaseCloudService {
 		
 		return snapshotVO;
 	}
-	
-	
 
 }

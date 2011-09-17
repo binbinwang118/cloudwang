@@ -1,3 +1,6 @@
+============
+Introduction
+============
 cloudwang
 	* a multi-cloud supported RESTful API that align with the HTTP principle. 
 	* an open source project that under the Apache License, Version 2.0.
@@ -7,3 +10,42 @@ cloudwang
 I can be reachable by,
 	* email  <binbinwang118@gmail.com>
 	* irc    <freenode@Binbin>
+
+
+============
+URI Modeling
+============
+
+
+
+
+
+=================
+Async Job Service
+=================
+To keep the pure HTTP principle, only POST method are allowed the async 
+request. GET, DELETE and PUT methods can not be requested asynchronously.
+
+Sample to use the async job service,
+POST	http://localhost:8080/cloudwang/rs/snapshot?asynch=true
+
+HTTP/1.1 202 Accepted
+Location: http://localhost:8080/cloudwang/rs/async/jobs/1316277771002-1
+
+Then can perform GET, POST and DELETE operations on the job URL
+/async/jobs/{job-id}?wait={millisconds}|nowait=true
+
+GET
+if the job was completed, return whatever the JAX-RS resource method responses. 
+if the job has not completed, return response code of 202, Accepted.
+
+POST 
+read the job response. if the job was completed, will remove the job.
+
+DELETE
+clean up the job
+
+eg. POST http://localhost:8080/cloudwang/rs/async/jobs/1316277771002-1?wait=6000
+
+
+ 
