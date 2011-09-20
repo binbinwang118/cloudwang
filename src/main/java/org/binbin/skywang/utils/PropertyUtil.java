@@ -23,10 +23,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.FileInputStream;
-
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+import org.jboss.resteasy.logging.Logger;
 
 public class PropertyUtil {
 
