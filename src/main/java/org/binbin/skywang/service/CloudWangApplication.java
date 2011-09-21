@@ -32,6 +32,7 @@ public class CloudWangApplication extends Application {
 	   {
 	      singletons.add(new VolumeResource("AWSCloud"));
 	      singletons.add(new SnapshotResource("AWSCloud"));
+	      singletons.add(new MachineImageResource("AWSCloud"));
 
 	   }
 

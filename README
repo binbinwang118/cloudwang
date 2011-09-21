@@ -16,7 +16,59 @@ I can be reachable by,
 URI Modeling
 ============
 
+> MachineImage RESTful Modeling
+http://host/rs/machineimage
 
+> HTTP Methods
+* GET
+    http://host/rs/machineimage
+    http://host/rs/machineimage?accountNumber=***
+    http://host/rs/machineimage/machineimage_id
+
+Accept: application/xml, application/json
+
+* HEAD
+    http://host/rs/machineimage/machineimage_id
+
+Accept: application/xml, application/json
+
+* POST    (Async Operation)
+    http://host/rs/machineimage
+
+Accept: application/xml, application/json
+
+* PUT
+    http://host/rs/machineimage/machineimage_id
+
+Accept: application/xml, application/json
+
+* DELETE
+    http://host/rs/machineimage/machineimage_id
+
+Accept: application/xml, application/json
+
+
+> Object Modeling
+<cloudMachineImage>
+    <cloudProvider>CloudWang-AWS-EC2</cloudProvider>
+    <cloudName>AWS-EC2</cloudName>
+    <cloudAccountNumber></cloudAccountNumber>
+    <cloudRegionId>us-east-1</cloudRegionId>
+    <machineImageMethod>listMachineImage</machineImageMethod>
+    <machineImage machineImageId="0" status="ACTIVE" removable="true" sharable=”true” budget="0">
+        <providermachineImageId>ami-ab34dfgh</providermachineImageId>
+        <name>Canonical Ubuntu Lucid 64-bit</name>
+        <description>An Ubuntu image</description>
+        <machineImageType>machine</machineImageType>
+        <isPublic>false</isPublic>
+        <architecture>I64</architecture>
+        <platform>Red Hat</platform>
+        <creationTimestamp>2010-07-14T13:18:27.947-0000</creationTimestamp>
+        <providerOwnerId></providerOwnerId>
+        <agentName>12</agentName>
+        <software></software>
+    </machineImage>
+<cloudMachineImage>
 
 
 
