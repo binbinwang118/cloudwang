@@ -27,6 +27,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 
+import org.jboss.logging.Logger;
+
 import org.binbin.skywang.domain.CloudMachineImageVO;
 import org.binbin.skywang.domain.MachineImageVO;
 import org.dasein.cloud.CloudException;
@@ -36,6 +38,8 @@ import org.dasein.cloud.compute.MachineImageSupport;
 
 @Path("/machineimage")
 public class MachineImageResource  extends BaseCloudService{
+	
+	 private Logger logger = Logger.getLogger(MachineImageResource.class);
 	
 	private static MachineImageSupport machineImageSupport = null;
 	
@@ -57,7 +61,7 @@ public class MachineImageResource  extends BaseCloudService{
 		List<MachineImageVO> machineImageVOList = new LinkedList<MachineImageVO>();
 		
 		if(info.getQueryParameters().containsKey("asynch")) {
-			System.out.println("Only POST method can be invoked asynchronously!");
+			logger.error("Only POST method can be invoked asynchronously!");
 			return cloudMachineImageVO;
 		}
 		

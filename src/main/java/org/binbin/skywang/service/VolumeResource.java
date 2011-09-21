@@ -25,6 +25,7 @@ import org.dasein.cloud.CloudException;
 import org.dasein.cloud.InternalException;
 import org.dasein.cloud.compute.Volume;
 import org.dasein.cloud.compute.VolumeSupport;
+import org.jboss.logging.Logger;
 
 import org.binbin.skywang.domain.CloudVolumeVO;
 import org.binbin.skywang.domain.VolumeVO;
@@ -48,6 +49,8 @@ import javax.ws.rs.core.UriInfo;
 @Path("/volume")
 public class VolumeResource extends BaseCloudService {
 	
+	private Logger logger = Logger.getLogger(VolumeResource.class);
+	
 	private static VolumeSupport volumeSupport = null;
 
 	public VolumeResource(String cloudId) {
@@ -63,7 +66,7 @@ public class VolumeResource extends BaseCloudService {
 		List<VolumeVO> volumeVOList = new LinkedList<VolumeVO>();
 
 		if(info.getQueryParameters().containsKey("asynch")) {
-			System.out.println("Only POST method can be invoked asynchronously!");
+			logger.error("Only POST method can be invoked asynchronously!");
 			return cloudVolumeVO;
 		}
 		
@@ -99,7 +102,7 @@ public class VolumeResource extends BaseCloudService {
         VolumeVO volumeVO = new VolumeVO();
         
 		if(info.getQueryParameters().containsKey("asynch")) {
-			System.out.println("Only POST method can be invoked asynchronously!");
+			logger.error("Only POST method can be invoked asynchronously!");
 			return cloudVolumeVO;
 		}
         
@@ -136,7 +139,7 @@ public class VolumeResource extends BaseCloudService {
 	public void updateVolume(@PathParam("volumeName") String volumeName, CloudVolumeVO cloudVolumeVO, @Context UriInfo info) {
 		
 		if(info.getQueryParameters().containsKey("asynch")) {
-			System.out.println("Only POST method can be invoked asynchronously!");
+			logger.error("Only POST method can be invoked asynchronously!");
 			return;
 		}
 		
@@ -147,7 +150,7 @@ public class VolumeResource extends BaseCloudService {
 			detachVolumeFromServer(volumeName, cloudVolumeVO);
 		}
 		else {
-			System.out.println("Unsupported volume PUT methods: " + cloudVolumeVO.getVolumeMethod());
+			logger.info("Unsupported volume PUT methods: " + cloudVolumeVO.getVolumeMethod());
 		}
 	}
 	
@@ -190,7 +193,7 @@ public class VolumeResource extends BaseCloudService {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} finally {
-			System.out.println(volumeVO);
+			logger.info(volumeVO);
 		}
 		
 		volumeVO = convertVolume(volumeDasein);
@@ -204,7 +207,7 @@ public class VolumeResource extends BaseCloudService {
 	public void removeVolume(@PathParam("volumeName") String volumeName, @Context UriInfo info) {
 		
 		if(info.getQueryParameters().containsKey("asynch")) {
-			System.out.println("Only POST method can be invoked asynchronously!");
+			logger.error("Only POST method can be invoked asynchronously!");
 			return;
 		}
 		

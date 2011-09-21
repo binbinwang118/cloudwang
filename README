@@ -42,6 +42,7 @@ Accept: application/xml, application/json
 
 Accept: application/xml, application/json
 
+
 * DELETE
     http://host/rs/machineimage/machineimage_id
 

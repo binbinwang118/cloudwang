@@ -24,6 +24,7 @@ import org.dasein.cloud.CloudException;
 import org.dasein.cloud.InternalException;
 import org.dasein.cloud.compute.Snapshot;
 import org.dasein.cloud.compute.SnapshotSupport;
+import org.jboss.logging.Logger;
 import org.binbin.skywang.domain.SnapshotVO;
 import org.binbin.skywang.domain.CloudSnapshotVO;
 import org.binbin.skywang.service.BaseCloudService;
@@ -44,6 +45,8 @@ import javax.ws.rs.core.MediaType;
 @Path("/snapshot")
 public class SnapshotResource extends BaseCloudService {
 	
+	private Logger logger = Logger.getLogger(SnapshotResource.class);
+	
 	private static SnapshotSupport snapshotSupport = null;
 	
 	public SnapshotResource(String cloudId) {
@@ -60,7 +63,7 @@ public class SnapshotResource extends BaseCloudService {
 		List<SnapshotVO> snapshotVOList = new LinkedList<SnapshotVO>();
 		
 		if(info.getQueryParameters().containsKey("asynch")) {
-			System.out.println("Only POST method can be invoked asynchronously!");
+			logger.error("Only POST method can be invoked asynchronously!");
 			return cloudSnapshotVO;
 		}
 		
@@ -97,7 +100,7 @@ public class SnapshotResource extends BaseCloudService {
 		SnapshotVO snapshotVO = new SnapshotVO();
 
 		if(info.getQueryParameters().containsKey("asynch")) {
-			System.out.println("Only POST method can be invoked asynchronously!");
+			logger.error("Only POST method can be invoked asynchronously!");
 			return cloudSnapshotVO;
 		}
 		
