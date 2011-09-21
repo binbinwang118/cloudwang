@@ -23,6 +23,8 @@ import java.util.Set;
 
 import javax.ws.rs.core.Application;
 
+import org.binbin.skywang.exceptions.CloudWangExceptionMapper;
+
 public class CloudWangApplication extends Application {
 	
 	   private Set<Object> singletons = new HashSet<Object>();
@@ -33,7 +35,7 @@ public class CloudWangApplication extends Application {
 	      singletons.add(new VolumeResource("AWSCloud"));
 	      singletons.add(new SnapshotResource("AWSCloud"));
 	      singletons.add(new MachineImageResource("AWSCloud"));
-
+	      singletons.add(new CloudWangExceptionMapper());
 	   }
 
 	   @Override
