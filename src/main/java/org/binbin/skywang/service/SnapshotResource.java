@@ -62,11 +62,6 @@ public class SnapshotResource extends BaseCloudService {
 		CloudSnapshotVO cloudSnapshotVO = new CloudSnapshotVO();	
 		List<SnapshotVO> snapshotVOList = new LinkedList<SnapshotVO>();
 		
-		if(info.getQueryParameters().containsKey("asynch")) {
-			logger.error("Only POST method can be invoked asynchronously!");
-			return cloudSnapshotVO;
-		}
-		
 		try {
 			Iterable<Snapshot> snapshot = snapshotSupport.listSnapshots();		
 			for(Snapshot tmpSnapshot : snapshot) {
@@ -98,11 +93,6 @@ public class SnapshotResource extends BaseCloudService {
 		
 		Snapshot snapshotDasein = null;
 		SnapshotVO snapshotVO = new SnapshotVO();
-
-		if(info.getQueryParameters().containsKey("asynch")) {
-			logger.error("Only POST method can be invoked asynchronously!");
-			return cloudSnapshotVO;
-		}
 		
 		try {
 			snapshotDasein = snapshotSupport.getSnapshot(providerSnapshotId);

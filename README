@@ -102,3 +102,16 @@ eg. POST http://localhost:8080/cloudwang/rs/async/jobs/1316277771002-1?wait=6000
 
 
  
+====
+TEST
+====
+MachineImage (Template)
+curl -X GET -H "Accept: application/xml" http://localhost:8080/cloudwang/rs/machineimage/
+curl -X GET -H "Accept: application/json" http://localhost:8080/cloudwang/rs/machineimage/
+
+curl -X GET -H "Accept: application/xml" http://localhost:8080/cloudwang/rs/machineimage?accountNumber=***
+curl -X GET -H "Accept: application/json" http://localhost:8080/cloudwang/rs/machineimage?accountNumber=***
+
+curl -X GET -H "Accept: application/xml" http://localhost:8080/cloudwang/rs/machineimage/id-number
+curl -X GET -H "Accept: application/json" http://localhost:8080/cloudwang/rs/machineimage/id-number
+

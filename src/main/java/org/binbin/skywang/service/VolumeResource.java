@@ -65,11 +65,6 @@ public class VolumeResource extends BaseCloudService {
 		CloudVolumeVO cloudVolumeVO = new CloudVolumeVO();	
 		List<VolumeVO> volumeVOList = new LinkedList<VolumeVO>();
 
-		if(info.getQueryParameters().containsKey("asynch")) {
-			logger.error("Only POST method can be invoked asynchronously!");
-			return cloudVolumeVO;
-		}
-		
 		try {
 			Iterable<Volume> volume = volumeSupport.listVolumes();
 			for(Volume tmpVolume : volume) {
@@ -100,11 +95,6 @@ public class VolumeResource extends BaseCloudService {
 		List<VolumeVO> volumeVOList = new LinkedList<VolumeVO>();
         Volume volumeDasein = null;
         VolumeVO volumeVO = new VolumeVO();
-        
-		if(info.getQueryParameters().containsKey("asynch")) {
-			logger.error("Only POST method can be invoked asynchronously!");
-			return cloudVolumeVO;
-		}
         
         try {
 			volumeDasein = volumeSupport.getVolume(volumeName);
@@ -137,11 +127,6 @@ public class VolumeResource extends BaseCloudService {
 	@Path("{volumeName}")
 	@Consumes({"application/xml", "application/json"})
 	public void updateVolume(@PathParam("volumeName") String volumeName, CloudVolumeVO cloudVolumeVO, @Context UriInfo info) {
-		
-		if(info.getQueryParameters().containsKey("asynch")) {
-			logger.error("Only POST method can be invoked asynchronously!");
-			return;
-		}
 		
 		if(cloudVolumeVO.getVolumeMethod().equals("attachVolume")) {
 			attchVolumeToServer(volumeName, cloudVolumeVO);
@@ -205,11 +190,6 @@ public class VolumeResource extends BaseCloudService {
 	@DELETE
 	@Path("{volumeName}")
 	public void removeVolume(@PathParam("volumeName") String volumeName, @Context UriInfo info) {
-		
-		if(info.getQueryParameters().containsKey("asynch")) {
-			logger.error("Only POST method can be invoked asynchronously!");
-			return;
-		}
 		
 		try {
 			volumeSupport.remove(volumeName);

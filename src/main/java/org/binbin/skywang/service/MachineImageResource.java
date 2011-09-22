@@ -22,6 +22,7 @@ import java.util.List;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -60,11 +61,6 @@ public class MachineImageResource  extends BaseCloudService{
 		CloudMachineImageVO cloudMachineImageVO = new CloudMachineImageVO();
 		List<MachineImageVO> machineImageVOList = new LinkedList<MachineImageVO>();
 		
-		if(info.getQueryParameters().containsKey("asynch")) {
-			logger.error("Only POST method can be invoked asynchronously!");
-			return cloudMachineImageVO;
-		}
-		
 		try {
 			Iterable<MachineImage> machineImage;
 			if(accountNumber == null) {
@@ -94,6 +90,40 @@ public class MachineImageResource  extends BaseCloudService{
 			
 		return cloudMachineImageVO;
 	}
+	
+	@GET
+	@Path("{providerMachineImageId}")
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+	public CloudMachineImageVO getMachineImage(@PathParam("providerMachineImageId") String providerMachineImageId, @Context UriInfo info) {
+		
+		CloudMachineImageVO cloudMachineImageVO = new CloudMachineImageVO();
+		MachineImageVO machineImageVO = null;
+		List<MachineImageVO> machineImageVOList = new LinkedList<MachineImageVO>();
+		
+		MachineImage machineImage;
+		
+		try {
+			machineImage = machineImageSupport.getMachineImage(providerMachineImageId);
+			machineImageVO = convertMachineImage(machineImage);
+			machineImageVOList.add(machineImageVO);
+		} catch (CloudException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InternalException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		cloudMachineImageVO.setMachineImageMethod("getMachineImage");
+		cloudMachineImageVO.setCloudProvider(provider.getProviderName());
+		cloudMachineImageVO.setCloudName(provider.getCloudName());
+		cloudMachineImageVO.setCloudAccountNumber(provider.getContext().getAccountNumber());
+		cloudMachineImageVO.setMachineImageVOList(machineImageVOList);
+		
+		return cloudMachineImageVO;
+		
+	}
+	
 	
 	public MachineImageVO convertMachineImage(MachineImage machineImage) {
 		
