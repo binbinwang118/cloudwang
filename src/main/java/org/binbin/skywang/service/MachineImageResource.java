@@ -20,7 +20,9 @@ package org.binbin.skywang.service;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -32,6 +34,7 @@ import org.jboss.logging.Logger;
 
 import org.binbin.skywang.domain.CloudMachineImageVO;
 import org.binbin.skywang.domain.MachineImageVO;
+import org.dasein.cloud.AsynchronousTask;
 import org.dasein.cloud.CloudException;
 import org.dasein.cloud.InternalException;
 import org.dasein.cloud.compute.MachineImage;
@@ -94,7 +97,7 @@ public class MachineImageResource  extends BaseCloudService{
 	@GET
 	@Path("{providerMachineImageId}")
 	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-	public CloudMachineImageVO getMachineImage(@PathParam("providerMachineImageId") String providerMachineImageId, @Context UriInfo info) {
+	public CloudMachineImageVO getMachineImage(@PathParam("providerMachineImageId") String providerMachineImageId) {
 		
 		CloudMachineImageVO cloudMachineImageVO = new CloudMachineImageVO();
 		MachineImageVO machineImageVO = null;
@@ -121,6 +124,53 @@ public class MachineImageResource  extends BaseCloudService{
 		cloudMachineImageVO.setMachineImageVOList(machineImageVOList);
 		
 		return cloudMachineImageVO;
+		
+	}
+	
+	@POST
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+	public CloudMachineImageVO createMachineImage(CloudMachineImageVO createMachineImage) {
+		
+		CloudMachineImageVO cloudMachineImageVO = new CloudMachineImageVO();
+		MachineImage machineMage = null;
+		MachineImageVO machineImageVO = null;
+		List<MachineImageVO> machineImageVOList = new LinkedList<MachineImageVO>();
+		
+		String serverId = createMachineImage.getMachineImageVOList().get(0).getServerId();
+		String machineImageName = createMachineImage.getMachineImageVOList().get(0).getName();
+		String description = createMachineImage.getMachineImageVOList().get(0).getDescription();
+		
+		logger.debug(serverId);
+		logger.debug(machineImageName);
+		logger.debug(description);
+		
+		AsynchronousTask<String> taskMachineImage = null;
+		
+		try {
+			taskMachineImage = machineImageSupport.imageVirtualMachine(serverId, machineImageName, description);
+			machineMage = machineImageSupport.getMachineImage(taskMachineImage.getResult());
+		} catch (CloudException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InternalException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		machineImageVO = convertMachineImage(machineMage);
+		machineImageVO.setServerId(serverId);
+		machineImageVOList.add(machineImageVO);
+		
+		cloudMachineImageVO.setCloudAccountNumber(provider.getContext().getAccountNumber());
+		cloudMachineImageVO.setCloudName(provider.getCloudName());
+		cloudMachineImageVO.setCloudProvider(provider.getProviderName());
+		cloudMachineImageVO.setCloudRegionId(provider.getContext().getRegionId());
+		cloudMachineImageVO.setMachineImageMethod("createMachineImage");
+		cloudMachineImageVO.setMachineImageVOList(machineImageVOList);
+		
+		return cloudMachineImageVO;
+//		return Response.created(URI.create("/machineimage/" + taskMachineImage.getResult())).build();
 		
 	}
 	
@@ -152,14 +202,13 @@ public class MachineImageResource  extends BaseCloudService{
 			machineImageVO.setPublic(false);
 			machineImageVO.setSharable(false);
 		}
-		
 		machineImageVO.setArchitecture(machineImage.getArchitecture());
 		machineImageVO.setPlatform(machineImage.getPlatform());
 		machineImageVO.setProviderOwnerId(machineImage.getProviderOwnerId());
 		
 		machineImageVO.setAgentName("NULL");
 		machineImageVO.setSoftware("NULL");
-
+		machineImageVO.setServerId("NULL");
 		return machineImageVO;
 		
 	}
