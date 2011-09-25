@@ -112,7 +112,12 @@ curl -X GET -H "Accept: application/json" http://localhost:8080/cloudwang/rs/mac
 curl -X GET -H "Accept: application/xml" http://localhost:8080/cloudwang/rs/machineimage?accountNumber=***
 curl -X GET -H "Accept: application/json" http://localhost:8080/cloudwang/rs/machineimage?accountNumber=***
 
-curl -X GET -H "Accept: application/xml" http://localhost:8080/cloudwang/rs/machineimage/id-number
-curl -X GET -H "Accept: application/json" http://localhost:8080/cloudwang/rs/machineimage/id-number
+curl -X GET -H "Accept: application/xml" http://localhost:8080/cloudwang/rs/machineimage?keyword=***&platform=***&architecture=***
+curl -X GET -H "Accept: application/json" http://localhost:8080/cloudwang/rs/machineimage?keyword=***&platform=***&architecture=***
+
+curl -X GET -H "Accept: application/xml" http://localhost:8080/cloudwang/rs/machineimage/machineimage_id
+curl -X GET -H "Accept: application/json" http://localhost:8080/cloudwang/rs/machineimage/machineimage_id
 
 curl -v -k -X POST -H "Content-Type: application/xml" --data '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cloudMachineImage><machineImage><description>Test</description><name>test createMachineImage</name><serverId>FIX-ME-ServerID</serverId></machineImage></cloudMachineImage>' http://localhost:8080/cloudwang/rs/machineimage
+
+curl -v -k -X DELETE http://localhost:8080/cloudwang/rs/machineimage/machineimage_id

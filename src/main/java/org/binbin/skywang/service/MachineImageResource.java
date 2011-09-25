@@ -21,6 +21,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -202,6 +203,21 @@ public class MachineImageResource  extends BaseCloudService{
 		
 	}
 	
+	@DELETE
+	@Path("{providerMachineImageId}")
+	public void removeMachineImage(@PathParam("providerMachineImageId") String providerMachineImageId, @Context UriInfo info) {
+		
+		try {
+			machineImageSupport.remove(providerMachineImageId);
+		} catch (CloudException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InternalException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	
 	public MachineImageVO convertMachineImage(MachineImage machineImage) {
 		
@@ -236,7 +252,6 @@ public class MachineImageResource  extends BaseCloudService{
 		
 		machineImageVO.setAgentName("NULL");
 		machineImageVO.setSoftware("NULL");
-		machineImageVO.setServerId("NULL");
 		return machineImageVO;
 		
 	}
