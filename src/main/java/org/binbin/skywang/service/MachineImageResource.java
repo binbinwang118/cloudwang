@@ -37,8 +37,10 @@ import org.binbin.skywang.domain.MachineImageVO;
 import org.dasein.cloud.AsynchronousTask;
 import org.dasein.cloud.CloudException;
 import org.dasein.cloud.InternalException;
+import org.dasein.cloud.compute.Architecture;
 import org.dasein.cloud.compute.MachineImage;
 import org.dasein.cloud.compute.MachineImageSupport;
+import org.dasein.cloud.compute.Platform;
 
 @Path("/machineimage")
 public class MachineImageResource  extends BaseCloudService{
@@ -57,19 +59,45 @@ public class MachineImageResource  extends BaseCloudService{
 	public CloudMachineImageVO listMachineImage(@Context UriInfo info) {
 		
 		String accountNumber = null;
+		String keyword = null;
+		String strPlatform = null;
+		String strArchitecture = null;
+		Platform platform = null;
+		Architecture architecture = null;
+		
 		if(info.getQueryParameters().containsKey("accountNumber")) {
 			accountNumber = info.getQueryParameters().getFirst("accountNumber");
+		}
+		else if(info.getQueryParameters().containsKey("keyword")) {
+			keyword = info.getQueryParameters().getFirst("keyword");
+		}
+		else if(info.getQueryParameters().containsKey("platform")) {
+			strPlatform = info.getQueryParameters().getFirst("platform");
+			platform = Platform.guess(strPlatform);
+		}
+		else if(info.getQueryParameters().containsKey("architecture")) {
+			strArchitecture = info.getQueryParameters().getFirst("architecture");
+			if(strArchitecture.contains("I32")) {
+				architecture = Architecture.I32;
+			}
+			else if(strArchitecture.contains("I64")) {
+				architecture = Architecture.I64;
+			}
 		}
 		
 		CloudMachineImageVO cloudMachineImageVO = new CloudMachineImageVO();
 		List<MachineImageVO> machineImageVOList = new LinkedList<MachineImageVO>();
 		
 		try {
-			Iterable<MachineImage> machineImage;
-			if(accountNumber == null) {
+			Iterable<MachineImage> machineImage = null;
+			if((accountNumber == null) && (keyword == null)) { 
 				machineImage = machineImageSupport.listMachineImages();
-			} else {
+			} 
+			else if((accountNumber != null) && (keyword == null)) {
 				machineImage = machineImageSupport.listMachineImagesOwnedBy(accountNumber);
+			}
+			else if((accountNumber == null) && (keyword != null)) {
+				machineImage = machineImageSupport.searchMachineImages(keyword, platform, architecture);
 			}
 			
 			for(MachineImage tmpMachineImage : machineImage) {
