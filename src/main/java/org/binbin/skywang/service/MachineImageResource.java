@@ -150,10 +150,47 @@ public class MachineImageResource  extends BaseCloudService{
 		cloudMachineImageVO.setCloudProvider(provider.getProviderName());
 		cloudMachineImageVO.setCloudName(provider.getCloudName());
 		cloudMachineImageVO.setCloudAccountNumber(provider.getContext().getAccountNumber());
+		cloudMachineImageVO.setCloudRegionId(provider.getContext().getRegionId());
 		cloudMachineImageVO.setMachineImageVOList(machineImageVOList);
 		
 		return cloudMachineImageVO;
 		
+	}
+	
+	@GET
+	@Path("{providerMachineImageId}/share")
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+	public CloudMachineImageVO getMachineImageShare(@PathParam("providerMachineImageId") String providerMachineImageId) {
+		
+		CloudMachineImageVO cloudMachineImageVO = new CloudMachineImageVO();
+		MachineImageVO machineImageVO = new MachineImageVO();
+		List<MachineImageVO> machineImageVOList = new LinkedList<MachineImageVO>();
+		
+		Iterable<String> results = null;
+		
+		try {
+			results = machineImageSupport.listShares(providerMachineImageId);
+		} catch (CloudException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InternalException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		machineImageVO.setShare(results.toString());
+		machineImageVO.setPublic(true);
+		machineImageVO.setSharable(true);
+		machineImageVOList.add(machineImageVO);
+		
+		cloudMachineImageVO.setMachineImageMethod("getMachineImageShare");
+		cloudMachineImageVO.setCloudProvider(provider.getProviderName());
+		cloudMachineImageVO.setCloudName(provider.getCloudName());
+		cloudMachineImageVO.setCloudAccountNumber(provider.getContext().getAccountNumber());
+		cloudMachineImageVO.setCloudRegionId(provider.getContext().getRegionId());
+		cloudMachineImageVO.setMachineImageVOList(machineImageVOList);
+		
+		return cloudMachineImageVO;
 	}
 	
 	@POST

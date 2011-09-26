@@ -29,7 +29,7 @@ import org.dasein.cloud.compute.Platform;
 
 @XmlType(propOrder ={"providermachineImageId", "name", "description", "machineImageType", 
 		"public", "architecture", "platform", "creationTimestamp", "providerOwnerId", 
-		"agentName", "software", "serverId"})
+		"agentName", "software", "serverId", "share"})
 public class MachineImageVO {
 	
 	private String				machineImageId;
@@ -50,8 +50,9 @@ public class MachineImageVO {
 	private	String				agentName;
 	private String				software;
 	private String				serverId;
+	private String				share;
     
-    public MachineImageVO() { }
+	public MachineImageVO() { }
 
 	public MachineImageVO(String machineImageId, MachineImageState status,
 			boolean removable, boolean sharable, int budget,
@@ -164,6 +165,11 @@ public class MachineImageVO {
 		return serverId;
 	}
 	
+	@XmlElement
+    public String getShare() {
+		return share;
+	}
+	
 	public void setMachineImageId(String machineImageId) {
 		this.machineImageId = machineImageId;
 	}
@@ -230,6 +236,11 @@ public class MachineImageVO {
 	
 	public void setServerId(String serverId) {
 		this.serverId = serverId;
+	}
+	
+
+	public void setShare(String share) {
+		this.share = share;
 	}
     
 }
