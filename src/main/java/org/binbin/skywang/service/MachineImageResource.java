@@ -24,6 +24,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -191,6 +192,124 @@ public class MachineImageResource  extends BaseCloudService{
 		cloudMachineImageVO.setMachineImageVOList(machineImageVOList);
 		
 		return cloudMachineImageVO;
+	}
+	
+	@PUT
+	@Path("{providerMachineImageId}")
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+	public CloudMachineImageVO putMachineImage(@PathParam("providerMachineImageId") String providerMachineImageId, CloudMachineImageVO putMachineImage) throws CloudException, InternalException {
+		
+		CloudMachineImageVO cloudMachineImageVO = new CloudMachineImageVO();
+		MachineImageVO machineImageVO = null;
+		List<MachineImageVO> machineImageVOList = new LinkedList<MachineImageVO>();
+		MachineImage machineImage = null;
+		String machineImageMethod = null;
+
+		String machineImageId = providerMachineImageId;
+		boolean isPublic = putMachineImage.getMachineImageVOList().get(0).isPublic();
+		String share = putMachineImage.getMachineImageVOList().get(0).getShare();
+		
+		try {
+			machineImage = machineImageSupport.getMachineImage(machineImageId);
+		} catch (CloudException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InternalException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		machineImageVO = convertMachineImage(machineImage);
+		
+		if(share == null) {
+			if(isPublic) {
+				machineImageMethod = "makeMachineImagePublic";
+				makeMachineImagePublic(machineImageId);
+				machineImageVO.setPublic(true);
+			} else {
+				machineImageMethod = "makeMachineImagePrivate";
+				makeMachineImagePrivate(machineImageId);
+				machineImageVO.setPublic(false);
+			}
+		} else {
+			if(isPublic) {
+				machineImageMethod = "addMachineImageShare";
+				addMachineImageShare(machineImageId, share);
+				Iterable<String> shareAccounts = machineImageSupport.listShares(machineImageId);
+				machineImageVO.setShare(shareAccounts.toString());
+			} else {
+				machineImageMethod = "removeMachineImageShare";
+				removeMachineImageShare(machineImageId, share);
+				Iterable<String> shareAccounts = machineImageSupport.listShares(machineImageId);
+				machineImageVO.setShare(shareAccounts.toString());
+			}
+		}
+		
+		machineImageVOList.add(machineImageVO);
+		
+		cloudMachineImageVO.setMachineImageMethod(machineImageMethod);
+		cloudMachineImageVO.setCloudProvider(provider.getProviderName());
+		cloudMachineImageVO.setCloudName(provider.getCloudName());
+		cloudMachineImageVO.setCloudAccountNumber(provider.getContext().getAccountNumber());
+		cloudMachineImageVO.setCloudRegionId(provider.getContext().getRegionId());
+		cloudMachineImageVO.setMachineImageVOList(machineImageVOList);
+		
+		return cloudMachineImageVO;
+		
+	}
+	
+	private void makeMachineImagePublic(String providerMachineImageId) {
+		
+		try {
+			machineImageSupport.shareMachineImage(providerMachineImageId, null, true);
+		} catch (CloudException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InternalException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	private void makeMachineImagePrivate(String providerMachineImageId) {
+		
+		try {
+			machineImageSupport.shareMachineImage(providerMachineImageId, null, false);
+		} catch (CloudException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InternalException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	private void addMachineImageShare(String providerMachineImageId, String accountNumber) {
+		
+		try {
+			machineImageSupport.shareMachineImage(providerMachineImageId, accountNumber, true);
+		} catch (CloudException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InternalException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+	
+	private void removeMachineImageShare(String providerMachineImageId, String accountNumber) {
+		
+		try {
+			machineImageSupport.shareMachineImage(providerMachineImageId, accountNumber, false);
+		} catch (CloudException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InternalException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	@POST
