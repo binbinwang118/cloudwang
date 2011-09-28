@@ -6,15 +6,19 @@ import java.util.List;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import org.jboss.logging.Logger;
 
+import org.binbin.skywang.domain.CloudMachineImageVO;
 import org.binbin.skywang.domain.CloudServerVO;
+import org.binbin.skywang.domain.MachineImageVO;
 import org.binbin.skywang.domain.ServerVO;
 import org.dasein.cloud.CloudException;
 import org.dasein.cloud.InternalException;
+import org.dasein.cloud.compute.MachineImage;
 import org.dasein.cloud.compute.VirtualMachine;
 import org.dasein.cloud.compute.VirtualMachineSupport;
 
@@ -60,6 +64,39 @@ public class ServerResource extends BaseCloudService {
 		cloudServerVO.setServerVOList(serverVOList);
 
 		return cloudServerVO;
+	}
+	
+	@GET
+	@Path("{providerServerId}")
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+	public CloudServerVO getServer(@PathParam("providerServerId") String providerServerId) {
+		
+		CloudServerVO cloudServerVO = new CloudServerVO();
+		List<ServerVO> serverVOList = new LinkedList<ServerVO>();
+		
+		VirtualMachine server = null;
+		
+		try {
+			server = serverSupport.getVirtualMachine(providerServerId);
+		} catch (InternalException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (CloudException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		serverVOList.add(convertServer(server));
+		
+		cloudServerVO.setServerMethod("getServer");
+		cloudServerVO.setCloudProvider(provider.getProviderName());
+		cloudServerVO.setCloudName(provider.getCloudName());
+		cloudServerVO.setCloudAccountNumber(provider.getContext().getAccountNumber());
+		cloudServerVO.setCloudRegionId(provider.getContext().getRegionId());
+		cloudServerVO.setServerVOList(serverVOList);
+		
+		return cloudServerVO;
+		
 	}
 	
 	public ServerVO convertServer(VirtualMachine server) {

@@ -137,3 +137,6 @@ curl -v -k -X DELETE http://localhost:8080/cloudwang/rs/machineimage/machineimag
 Server(VirtualMachine)
 curl -v -k -X GET -H "Accept: application/xml" http://localhost:8080/cloudwang/rs/server
 curl -v -k -X GET -H "Accept: application/json" http://localhost:8080/cloudwang/rs/server
+
+curl -v -k -X GET -H "Accept: application/xml" http://localhost:8080/cloudwang/rs/server/FIX_ME_Server_Id
+curl -v -k -X GET -H "Accept: application/json" http://localhost:8080/cloudwang/rs/server/FIX_ME_Server_Id
