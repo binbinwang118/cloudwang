@@ -45,9 +45,9 @@ import org.dasein.cloud.compute.MachineImageSupport;
 import org.dasein.cloud.compute.Platform;
 
 @Path("/machineimage")
-public class MachineImageResource  extends BaseCloudService{
+public class MachineImageResource extends BaseCloudService {
 	
-	 private Logger logger = Logger.getLogger(MachineImageResource.class);
+	private Logger logger = Logger.getLogger(MachineImageResource.class);
 	
 	private static MachineImageSupport machineImageSupport = null;
 	

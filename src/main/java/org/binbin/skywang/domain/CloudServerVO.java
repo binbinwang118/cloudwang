@@ -34,7 +34,7 @@ public class CloudServerVO {
 	private String cloudName;
 	private String cloudAccountNumber;
 	private String cloudRegionId;
-	protected List<ServerVO> serverVOList;
+	private List<ServerVO> serverVOList;
 	
 	public CloudServerVO() {}
 
@@ -75,7 +75,7 @@ public class CloudServerVO {
 		return cloudRegionId;
 	}
 
-	@XmlElement
+	@XmlElement(name = "server")
 	public List<ServerVO> getServerVOList() {
 		return serverVOList;
 	}

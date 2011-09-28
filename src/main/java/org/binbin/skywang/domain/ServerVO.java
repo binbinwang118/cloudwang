@@ -31,8 +31,8 @@ import org.dasein.cloud.compute.VmState;
 
 @XmlType(propOrder ={"providerServerId", "name","description", "providerOwnerId", "architecture", "platform", 
 		"product", "creationTimestamp", "clonable", "pausable", "rebootable", "removable", "lastBootTimestamp", 
-		"lastPauseTimestamp", "terminationTimestamp",  "providerMachineImageId",  "publicDnsAddress",  
-		"publicIpAddresses",  "privateDnsAddress",  "privateIpAddresses",  "providerAssignedIpAddressId",  
+		"lastPauseTimestamp", "terminationTimestamp",  "providerMachineImageId", "publicIpAddresses", "publicDnsAddress",  
+		 "privateDnsAddress",  "privateIpAddresses",  "providerAssignedIpAddressId",  
 		"providerVlanId",  "rootPassword",  "rootUser", "tags"})
 public class ServerVO {
 	
@@ -59,15 +59,15 @@ public class ServerVO {
     private long                  lastPauseTimestamp;
     private long                  terminationTimestamp;
     private String                providerMachineImageId;
+    private String                publicIpAddresses;
     private String                publicDnsAddress;
-    public String[]               publicIpAddresses;
+    private String                privateIpAddresses;
     private String                privateDnsAddress;
-    private String[]              privateIpAddresses;
     private String                providerAssignedIpAddressId;
     private String                providerVlanId;
     private String                rootPassword;
     private String                rootUser;
-    private Map<String,String>    tags;   
+    private String			      tags;   
     
 	public ServerVO() { }
 
@@ -80,10 +80,9 @@ public class ServerVO {
 			boolean rebootable, boolean removable, long lastBootTimestamp,
 			long lastPauseTimestamp, long terminationTimestamp,
 			String providerMachineImageId, String publicDnsAddress,
-			String[] publicIpAddresses, String privateDnsAddress,
-			String[] privateIpAddresses, String providerAssignedIpAddressId,
-			String providerVlanId, String rootPassword, String rootUser,
-			Map<String, String> tags) {
+			String publicIpAddresses, String privateDnsAddress,
+			String privateIpAddresses, String providerAssignedIpAddressId,
+			String providerVlanId, String rootPassword, String rootUser) {
 		super();
 		this.serverId = serverId;
 		this.analytics = analytics;
@@ -115,7 +114,6 @@ public class ServerVO {
 		this.providerVlanId = providerVlanId;
 		this.rootPassword = rootPassword;
 		this.rootUser = rootUser;
-		this.tags = tags;
 	}
 
 	@XmlAttribute
@@ -234,7 +232,7 @@ public class ServerVO {
 	}
 
 	@XmlElement
-	public String[] getPublicIpAddresses() {
+	public String getPublicIpAddresses() {
 		return publicIpAddresses;
 	}
 
@@ -244,7 +242,7 @@ public class ServerVO {
 	}
 
 	@XmlElement
-	public String[] getPrivateIpAddresses() {
+	public String getPrivateIpAddresses() {
 		return privateIpAddresses;
 	}
 
@@ -267,11 +265,12 @@ public class ServerVO {
 	public String getRootUser() {
 		return rootUser;
 	}
-
+	
 	@XmlElement
-	public Map<String, String> getTags() {
+	public String getTags() {
 		return tags;
 	}
+
 
 	public void setServerId(String serverId) {
 		this.serverId = serverId;
@@ -365,7 +364,7 @@ public class ServerVO {
 		this.publicDnsAddress = publicDnsAddress;
 	}
 
-	public void setPublicIpAddresses(String[] publicIpAddresses) {
+	public void setPublicIpAddresses(String publicIpAddresses) {
 		this.publicIpAddresses = publicIpAddresses;
 	}
 
@@ -373,7 +372,7 @@ public class ServerVO {
 		this.privateDnsAddress = privateDnsAddress;
 	}
 
-	public void setPrivateIpAddresses(String[] privateIpAddresses) {
+	public void setPrivateIpAddresses(String privateIpAddresses) {
 		this.privateIpAddresses = privateIpAddresses;
 	}
 
@@ -393,17 +392,7 @@ public class ServerVO {
 		this.rootUser = rootUser;
 	}
 
-	public void setTags(Map<String, String> tags) {
+	public void setTags(String tags) {
 		this.tags = tags;
 	}
- 
-
-
-
-
-
-
-
-
-
 }
