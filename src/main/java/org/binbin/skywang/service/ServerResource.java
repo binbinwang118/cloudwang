@@ -99,6 +99,25 @@ public class ServerResource extends BaseCloudService {
 		
 	}
 	
+	@GET
+	@Path("{providerServerId}/output")
+	@Produces({MediaType.TEXT_PLAIN})
+	public String getServerOutput(@PathParam("providerServerId") String providerServerId) {
+		
+		String output = null;
+		try {
+			output = serverSupport.getConsoleOutput(providerServerId);
+		} catch (InternalException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (CloudException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return output;
+	}
+	
 	public ServerVO convertServer(VirtualMachine server) {
 		
 		ServerVO serverVO = new ServerVO();
