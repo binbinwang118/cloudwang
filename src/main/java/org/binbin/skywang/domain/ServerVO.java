@@ -18,6 +18,7 @@
 
 package org.binbin.skywang.domain;
 
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.bind.annotation.XmlAttribute;
@@ -28,11 +29,12 @@ import org.dasein.cloud.compute.Architecture;
 import org.dasein.cloud.compute.Platform;
 import org.dasein.cloud.compute.VirtualMachineProduct;
 import org.dasein.cloud.compute.VmState;
+import org.dasein.cloud.compute.VmStatistics;
 
 @XmlType(propOrder ={"providerServerId", "name","description", "providerOwnerId", "architecture", "platform", 
-		"product", "creationTimestamp", "clonable", "pausable", "rebootable", "removable", "lastBootTimestamp", 
-		"lastPauseTimestamp", "terminationTimestamp",  "providerMachineImageId", "publicIpAddresses", "publicDnsAddress",  
-		 "privateDnsAddress",  "privateIpAddresses",  "providerAssignedIpAddressId",  
+		"product", "vmStatistics", "creationTimestamp", "monitoring", "clonable", "pausable", "rebootable", 
+		"removable", "lastBootTimestamp", "lastPauseTimestamp", "terminationTimestamp",  "providerMachineImageId", 
+		"publicIpAddresses", "publicDnsAddress",   "privateDnsAddress",  "privateIpAddresses", "providerAssignedIpAddressId", 
 		"providerVlanId",  "rootPassword",  "rootUser", "tags"})
 public class ServerVO {
 	
@@ -50,7 +52,9 @@ public class ServerVO {
     private Architecture          architecture;
     private Platform              platform;
     private VirtualMachineProduct product;
+    private List <VmStatistics>	  vmMetrics;
     private long                  creationTimestamp;
+    private boolean				  monitoring;
     private boolean               clonable;
     private boolean               pausable;   
     private boolean               rebootable;
@@ -75,7 +79,7 @@ public class ServerVO {
 			boolean persistent, VmState currentState, int budget,
 			String providerServerId, String name, String description,
 			String providerOwnerId, Architecture architecture,
-			Platform platform, VirtualMachineProduct product,
+			Platform platform, VirtualMachineProduct product,List <VmStatistics> vmMetrics,
 			long creationTimestamp, boolean clonable, boolean pausable,
 			boolean rebootable, boolean removable, long lastBootTimestamp,
 			long lastPauseTimestamp, long terminationTimestamp,
@@ -114,6 +118,7 @@ public class ServerVO {
 		this.providerVlanId = providerVlanId;
 		this.rootPassword = rootPassword;
 		this.rootUser = rootUser;
+		this.vmMetrics = vmMetrics;
 	}
 
 	@XmlAttribute
@@ -182,15 +187,25 @@ public class ServerVO {
 	}
 
 	@XmlElement
+	public List <VmStatistics> getVmStatistics() {
+		return vmMetrics;
+	}
+
+	@XmlElement
 	public long getCreationTimestamp() {
 		return creationTimestamp;
 	}
 
 	@XmlElement
+	public boolean isMonitoring() {
+		return monitoring;
+	}
+	
+	@XmlElement
 	public boolean isClonable() {
 		return clonable;
 	}
-
+	
 	@XmlElement
 	public boolean isPausable() {
 		return pausable;
@@ -324,8 +339,16 @@ public class ServerVO {
 		this.product = product;
 	}
 
+	public void setVmStatistics(List <VmStatistics> vmMetrics) {
+		this.vmMetrics = vmMetrics;
+	}
+	
 	public void setCreationTimestamp(long creationTimestamp) {
 		this.creationTimestamp = creationTimestamp;
+	}
+	
+	public void setMonitoring(boolean monitoring) {
+		this.monitoring = monitoring;
 	}
 
 	public void setClonable(boolean clonable) {

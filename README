@@ -140,3 +140,15 @@ curl -v -k -X GET -H "Accept: application/json" http://localhost:8080/cloudwang/
 
 curl -v -k -X GET -H "Accept: application/xml" http://localhost:8080/cloudwang/rs/server/FIX_ME_Server_Id
 curl -v -k -X GET -H "Accept: application/json" http://localhost:8080/cloudwang/rs/server/FIX_ME_Server_Id
+
+curl -v -k -X GET http://localhost:8080/cloudwang/rs/server/FIX_ME_Server_Id/console
+
+curl -v -k -X GET -H "Accept: application/xml" http://localhost:8080/cloudwang/rs/server/FIX_ME_Server_Id/metrics
+curl -v -k -X GET -H "Accept: application/json" http://localhost:8080/cloudwang/rs/server/FIX_ME_Server_Id/metrics
+
+curl -v -k -X GET -H "Accept: application/xml" http://localhost:8080/cloudwang/rs/server/FIX_ME_Server_Id/metrics?from=***&to=***
+curl -v -k -X GET -H "Accept: application/json" http://localhost:8080/cloudwang/rs/server/FIX_ME_Server_Id/metrics?from=***&to=***
+
+curl -v -k -X GET -H "Accept: application/xml" http://localhost:8080/cloudwang/rs/server/FIX_ME_Server_Id/metrics?period=yes&from=***&to=***
+curl -v -k -X GET -H "Accept: application/json" http://localhost:8080/cloudwang/rs/server/FIX_ME_Server_Id/metrics?period=yes&from=***&to=***
+

@@ -8,19 +8,19 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.UriInfo;
 
 import org.jboss.logging.Logger;
 
-import org.binbin.skywang.domain.CloudMachineImageVO;
 import org.binbin.skywang.domain.CloudServerVO;
-import org.binbin.skywang.domain.MachineImageVO;
 import org.binbin.skywang.domain.ServerVO;
 import org.dasein.cloud.CloudException;
 import org.dasein.cloud.InternalException;
-import org.dasein.cloud.compute.MachineImage;
 import org.dasein.cloud.compute.VirtualMachine;
 import org.dasein.cloud.compute.VirtualMachineSupport;
+import org.dasein.cloud.compute.VmStatistics;
 
 @Path("/server")
 public class ServerResource extends BaseCloudService {
@@ -100,7 +100,7 @@ public class ServerResource extends BaseCloudService {
 	}
 	
 	@GET
-	@Path("{providerServerId}/output")
+	@Path("{providerServerId}/console")
 	@Produces({MediaType.TEXT_PLAIN})
 	public String getServerOutput(@PathParam("providerServerId") String providerServerId) {
 		
@@ -117,6 +117,76 @@ public class ServerResource extends BaseCloudService {
 		
 		return output;
 	}
+	
+	@GET
+	@Path("{providerServerId}/metrics")
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+	public CloudServerVO getServerMetrics(@PathParam("providerServerId") String providerServerId, @Context UriInfo info) {
+		
+		CloudServerVO cloudServerVO = new CloudServerVO();
+		List<ServerVO> serverVOList = new LinkedList<ServerVO>();
+		VirtualMachine server = null;
+		ServerVO serverVO = null;
+		List <VmStatistics> vmStatistics = new LinkedList<VmStatistics>();
+		long from, to;
+		String period = null;
+		
+		if(info.getQueryParameters().containsKey("period")) {
+			period = info.getQueryParameters().getFirst("period");
+		}
+		
+		try {
+			server = serverSupport.getVirtualMachine(providerServerId);
+		} catch (InternalException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (CloudException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		if(info.getQueryParameters().containsKey("from")) {
+			from = Long.valueOf(info.getQueryParameters().getFirst("from"));
+		} else {
+			from = server.getCreationTimestamp();
+		}
+		
+		if(info.getQueryParameters().containsKey("to")) {
+			to = Long.valueOf(info.getQueryParameters().getFirst("to"));
+		} else {
+			to = System.currentTimeMillis();
+		}
+		
+		try {
+			if(period != null && period.equals("yes")) {
+				vmStatistics = (List<VmStatistics>) serverSupport.getVMStatisticsForPeriod(providerServerId, from, to);
+			} else {
+				VmStatistics tempvmStatistic = serverSupport.getVMStatistics(providerServerId, from, to);
+				vmStatistics.add(tempvmStatistic);
+			}
+		} catch (InternalException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (CloudException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		serverVO = convertServer(server);
+		serverVO.setVmStatistics(vmStatistics);
+		serverVOList.add(serverVO);
+		
+		cloudServerVO.setServerMethod("getServerMetrics");
+		cloudServerVO.setCloudProvider(provider.getProviderName());
+		cloudServerVO.setCloudName(provider.getCloudName());
+		cloudServerVO.setCloudAccountNumber(provider.getContext().getAccountNumber());
+		cloudServerVO.setCloudRegionId(provider.getContext().getRegionId());
+		cloudServerVO.setServerVOList(serverVOList);
+		
+		return cloudServerVO;
+		
+	}
+	
 	
 	public ServerVO convertServer(VirtualMachine server) {
 		
@@ -164,6 +234,7 @@ public class ServerResource extends BaseCloudService {
 		serverVO.setRootPassword(server.getRootPassword());
 		serverVO.setRootUser(server.getRootUser());
 		serverVO.setTags(server.getTags().toString());
+		serverVO.setVmStatistics(server.getVmStatistics());
 		
 		return serverVO;
 		
