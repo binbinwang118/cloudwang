@@ -32,14 +32,13 @@ import org.dasein.cloud.compute.VmState;
 import org.dasein.cloud.compute.VmStatistics;
 
 @XmlType(propOrder ={"providerServerId", "name","description", "providerOwnerId", "architecture", "platform", 
-		"product", "vmStatistics", "creationTimestamp", "monitoring", "clonable", "pausable", "rebootable", 
-		"removable", "lastBootTimestamp", "lastPauseTimestamp", "terminationTimestamp",  "providerMachineImageId", 
+		"product", "monitoring", "vmStatistics",  "clonable", "pausable", "rebootable", "removable", 
+		"creationTimestamp", "lastBootTimestamp", "lastPauseTimestamp", "terminationTimestamp",  "providerMachineImageId", 
 		"publicIpAddresses", "publicDnsAddress",   "privateDnsAddress",  "privateIpAddresses", "providerAssignedIpAddressId", 
 		"providerVlanId",  "rootPassword",  "rootUser", "tags"})
 public class ServerVO {
 	
 	private String				  serverId;
-	private boolean				  analytics;
     private boolean               imagable;
     private boolean               persistent;
     private VmState               currentState;
@@ -54,7 +53,7 @@ public class ServerVO {
     private VirtualMachineProduct product;
     private List <VmStatistics>	  vmMetrics;
     private long                  creationTimestamp;
-    private boolean				  monitoring;
+    private String				  monitoring;
     private boolean               clonable;
     private boolean               pausable;   
     private boolean               rebootable;
@@ -75,12 +74,12 @@ public class ServerVO {
     
 	public ServerVO() { }
 
-	public ServerVO(String serverId, boolean analytics, boolean imagable,
+	public ServerVO(String serverId, String analytics, boolean imagable,
 			boolean persistent, VmState currentState, int budget,
 			String providerServerId, String name, String description,
 			String providerOwnerId, Architecture architecture,
 			Platform platform, VirtualMachineProduct product,List <VmStatistics> vmMetrics,
-			long creationTimestamp, boolean clonable, boolean pausable,
+			String monitoring, long creationTimestamp, boolean clonable, boolean pausable,
 			boolean rebootable, boolean removable, long lastBootTimestamp,
 			long lastPauseTimestamp, long terminationTimestamp,
 			String providerMachineImageId, String publicDnsAddress,
@@ -89,7 +88,6 @@ public class ServerVO {
 			String providerVlanId, String rootPassword, String rootUser) {
 		super();
 		this.serverId = serverId;
-		this.analytics = analytics;
 		this.imagable = imagable;
 		this.persistent = persistent;
 		this.currentState = currentState;
@@ -101,6 +99,7 @@ public class ServerVO {
 		this.architecture = architecture;
 		this.platform = platform;
 		this.product = product;
+		this.monitoring = monitoring;
 		this.creationTimestamp = creationTimestamp;
 		this.clonable = clonable;
 		this.pausable = pausable;
@@ -124,11 +123,6 @@ public class ServerVO {
 	@XmlAttribute
 	public String getServerId() {
 		return serverId;
-	}
-
-	@XmlAttribute
-	public boolean isAnalytics() {
-		return analytics;
 	}
 
 	@XmlAttribute
@@ -197,7 +191,7 @@ public class ServerVO {
 	}
 
 	@XmlElement
-	public boolean isMonitoring() {
+	public String getMonitoring() {
 		return monitoring;
 	}
 	
@@ -291,10 +285,6 @@ public class ServerVO {
 		this.serverId = serverId;
 	}
 
-	public void setAnalytics(boolean analytics) {
-		this.analytics = analytics;
-	}
-
 	public void setImagable(boolean imagable) {
 		this.imagable = imagable;
 	}
@@ -347,7 +337,7 @@ public class ServerVO {
 		this.creationTimestamp = creationTimestamp;
 	}
 	
-	public void setMonitoring(boolean monitoring) {
+	public void setMonitoring(String monitoring) {
 		this.monitoring = monitoring;
 	}
 

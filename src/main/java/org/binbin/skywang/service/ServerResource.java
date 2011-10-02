@@ -148,7 +148,8 @@ public class ServerResource extends BaseCloudService {
 		if(info.getQueryParameters().containsKey("from")) {
 			from = Long.valueOf(info.getQueryParameters().getFirst("from"));
 		} else {
-			from = server.getCreationTimestamp();
+//			from = server.getCreationTimestamp();
+			from = System.currentTimeMillis() - 60000L;
 		}
 		
 		if(info.getQueryParameters().containsKey("to")) {
@@ -191,7 +192,7 @@ public class ServerResource extends BaseCloudService {
 	public ServerVO convertServer(VirtualMachine server) {
 		
 		ServerVO serverVO = new ServerVO();
-		
+
 		serverVO.setServerId(null);
 		serverVO.setImagable(server.isImagable());
 		serverVO.setPersistent(server.isPersistent());
@@ -205,6 +206,7 @@ public class ServerResource extends BaseCloudService {
 		serverVO.setArchitecture(server.getArchitecture());
 		serverVO.setPlatform(server.getPlatform());
 		serverVO.setProduct(server.getProduct());
+		serverVO.setMonitoring(server.getAnalytics());
 		serverVO.setCreationTimestamp(server.getCreationTimestamp());
 		serverVO.setLastBootTimestamp(server.getLastBootTimestamp());
 		serverVO.setLastPauseTimestamp(server.getLastPauseTimestamp());
