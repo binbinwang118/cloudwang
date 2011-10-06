@@ -65,6 +65,11 @@
         <version>2.2.2.GA</version>
     </dependency>
     <dependency>
+        <groupId>org.jboss.resteasy</groupId>
+        <artifactId>resteasy-links</artifactId>
+        <version>2.2.2.GA</version>
+    </dependency>
+    <dependency>
 		<groupId>org.jboss.resteasy</groupId>
 		<artifactId>resteasy-jaxb-provider</artifactId>
 		<version>2.2.2.GA</version>
