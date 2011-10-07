@@ -21,29 +21,34 @@ package org.binbin.skywang.service;
 import java.net.URI;
 import java.util.LinkedList;
 import java.util.List;
-import org.dasein.cloud.CloudException;
-import org.dasein.cloud.InternalException;
-import org.dasein.cloud.compute.Volume;
-import org.dasein.cloud.compute.VolumeSupport;
-import org.jboss.logging.Logger;
 
-import org.binbin.skywang.domain.CloudVolumeVO;
-import org.binbin.skywang.domain.VolumeVO;
-import org.binbin.skywang.service.BaseCloudService;
-
-import javax.ws.rs.GET;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+
+import org.binbin.skywang.domain.CloudVolumeVO;
+import org.binbin.skywang.domain.VolumeVO;
+
+import org.dasein.cloud.CloudException;
+import org.dasein.cloud.InternalException;
+import org.dasein.cloud.compute.Volume;
+import org.dasein.cloud.compute.VolumeSupport;
+
+import org.jboss.logging.Logger;
+import org.jboss.resteasy.links.AddLinks;
+import org.jboss.resteasy.links.LinkResource;
+import org.jboss.resteasy.specimpl.ResponseBuilderImpl;
 
 
 @Path("/volume")
@@ -58,15 +63,29 @@ public class VolumeResource extends BaseCloudService {
 		volumeSupport = provider.getComputeServices().getVolumeSupport();
 	}
 	
+	@AddLinks
+	@LinkResource(value = CloudVolumeVO.class, rel = "list")
 	@GET
 	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-	public CloudVolumeVO listVolume(@Context UriInfo info) {
+	public Response listVolume() {
 		
 		CloudVolumeVO cloudVolumeVO = new CloudVolumeVO();	
 		List<VolumeVO> volumeVOList = new LinkedList<VolumeVO>();
-
+		Iterable<Volume> volume     = null;
+		
+		ResponseBuilderImpl builder = new ResponseBuilderImpl();
+		
 		try {
-			Iterable<Volume> volume = volumeSupport.listVolumes();
+			volume = volumeSupport.listVolumes();
+			
+			if (volume == null) {
+				builder.type(MediaType.TEXT_PLAIN);
+				builder.entity("The requested resource is not found!");
+				builder.status(Response.Status.NOT_FOUND);
+				Response response = builder.build();
+				throw new WebApplicationException(response);
+			}
+			
 			for(Volume tmpVolume : volume) {
 				volumeVOList.add(convertVolume(tmpVolume));
 				}
@@ -78,27 +97,47 @@ public class VolumeResource extends BaseCloudService {
 				e.printStackTrace();
 			}
 			
+			cloudVolumeVO.setProviderVolumeId("providerVolumeId");
+			cloudVolumeVO.setCloudAccountNumber(provider.getContext().getAccountNumber());
+			cloudVolumeVO.setCloudName(provider.getCloudName());
 			cloudVolumeVO.setCloudProvider(provider.getProviderName());
+			cloudVolumeVO.setCloudRegionId(provider.getContext().getRegionId());
 			cloudVolumeVO.setVolumeMethod("listVolume");
 			cloudVolumeVO.setVolumeVOList(volumeVOList);
-			
-			return cloudVolumeVO;
+		    
+			builder.status(Response.Status.OK);
+			builder.entity(cloudVolumeVO);
+			Response response = builder.build();
+			return response;
 					
 	}
-   
+	
+	@AddLinks
+	@LinkResource(value = CloudVolumeVO.class, rel = "self")
 	@GET
-	@Path("{volumeName}")
+	@Path("{providerVolumeId}")
 	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public CloudVolumeVO getVolume(@PathParam("volumeName") String volumeName, @Context UriInfo info) {
+    public Response getVolume(@PathParam("providerVolumeId") String providerVolumeId, @Context UriInfo info) {
 		
 		CloudVolumeVO cloudVolumeVO = new CloudVolumeVO();	
 		List<VolumeVO> volumeVOList = new LinkedList<VolumeVO>();
-        Volume volumeDasein = null;
+        Volume volume = null;
         VolumeVO volumeVO = new VolumeVO();
         
+        ResponseBuilderImpl builder = new ResponseBuilderImpl();
+        
         try {
-			volumeDasein = volumeSupport.getVolume(volumeName);
-			volumeVO = convertVolume(volumeDasein);
+			volume = volumeSupport.getVolume(providerVolumeId);
+			
+			if (volume == null) {
+				builder.type(MediaType.TEXT_PLAIN);
+				builder.entity("The requested resource is not found!");
+				builder.status(Response.Status.NOT_FOUND);
+				Response response = builder.build();
+				throw new WebApplicationException(response);
+			} else {
+				volumeVO = convertVolume(volume);
+			}
 		} catch (InternalException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -109,46 +148,86 @@ public class VolumeResource extends BaseCloudService {
 			
 		volumeVOList.add(volumeVO);
 		
+		cloudVolumeVO.setProviderVolumeId(volumeVO.getProviderVolumeId());
+		cloudVolumeVO.setCloudAccountNumber(provider.getContext().getAccountNumber());
+		cloudVolumeVO.setCloudName(provider.getCloudName());
 		cloudVolumeVO.setCloudProvider(provider.getProviderName());
+		cloudVolumeVO.setCloudRegionId(provider.getContext().getRegionId());
 		cloudVolumeVO.setVolumeMethod("getVolume");
 		cloudVolumeVO.setVolumeVOList(volumeVOList);
 		
-		return cloudVolumeVO;
+		builder.entity(cloudVolumeVO);
+		builder.status(Response.Status.OK);
+		Response response = builder.build();
+		return response;
 	
 	}
 	
+	@LinkResource(value = CloudVolumeVO.class, rel = "head")
 	@HEAD
+	@Path("{providerVolumeId}")
 	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-	public Response getVolumeHeaders(@Context UriInfo uriInfo) {
-		return null;	
+	public Response getVolumeHeaders(@PathParam("providerVolumeId") String providerVolumeId, @Context UriInfo uriInfo) {
+		
+		Volume volume = null;
+        ResponseBuilderImpl builder = new ResponseBuilderImpl();
+        Response response = null;
+        
+        try {
+			volume = volumeSupport.getVolume(providerVolumeId);
+			
+			if (volume == null) {
+				builder.type(MediaType.TEXT_PLAIN);
+				builder.entity("The requested resource is not found!");
+				builder.status(Response.Status.NOT_FOUND);
+				response = builder.build();
+				throw new WebApplicationException(response);
+			} else {
+				builder.status(Response.Status.OK);
+				response = builder.build();
+			}
+		} catch (InternalException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (CloudException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return response;	
 	}
 	
+	@LinkResource(value = CloudVolumeVO.class, rel = "update")
 	@PUT
-	@Path("{volumeName}")
+	@Path("{providerVolumeId}")
 	@Consumes({"application/xml", "application/json"})
-	public void updateVolume(@PathParam("volumeName") String volumeName, CloudVolumeVO cloudVolumeVO, @Context UriInfo info) {
+	public void updateVolume(@PathParam("providerVolumeId") String providerVolumeId, CloudVolumeVO cloudVolumeVO, @Context UriInfo info) {
+		
+		CloudVolumeVO updateCloudVolumeVO = null;
 		
 		if(cloudVolumeVO.getVolumeMethod().equals("attachVolume")) {
-			attchVolumeToServer(volumeName, cloudVolumeVO);
+			updateCloudVolumeVO = attchVolumeToServer(providerVolumeId, cloudVolumeVO);
 		}
 		else if(cloudVolumeVO.getVolumeMethod().equals("detachVolume")) {
-			detachVolumeFromServer(volumeName, cloudVolumeVO);
+			updateCloudVolumeVO = detachVolumeFromServer(providerVolumeId, cloudVolumeVO);
 		}
 		else {
 			logger.info("Unsupported volume PUT methods: " + cloudVolumeVO.getVolumeMethod());
 		}
+		
 	}
 	
-	public void attchVolumeToServer(String volumeName, CloudVolumeVO attachVolume) {
+	public CloudVolumeVO attchVolumeToServer(String providerVolumeId, CloudVolumeVO attachVolume) {
 		
-		VolumeVO volumeVO = new VolumeVO();
+		CloudVolumeVO cloudVolumeVO = new CloudVolumeVO();	
 		List<VolumeVO> volumeVOList = new LinkedList<VolumeVO>();
-		Volume volumeDasein = null;
+        Volume volume = null;
+        VolumeVO volumeVO = new VolumeVO();
+        
 		String serverId = attachVolume.getVolumeVOList().get(0).getServerId();
 		String deviceId = attachVolume.getVolumeVOList().get(0).getDeviceId();
 		try {
-			volumeSupport.attach(volumeName, serverId, deviceId);
-			volumeDasein = volumeSupport.getVolume(volumeName);
+			volumeSupport.attach(providerVolumeId, serverId, deviceId);
+			volume = volumeSupport.getVolume(providerVolumeId);
 		} catch (InternalException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -157,20 +236,29 @@ public class VolumeResource extends BaseCloudService {
 			e.printStackTrace();
 		}
 		
-	    volumeVO = convertVolume(volumeDasein);
+	    volumeVO = convertVolume(volume);
 		volumeVOList.add(volumeVO);
-		attachVolume.setVolumeVOList(volumeVOList);
+		
+		cloudVolumeVO.setCloudAccountNumber(provider.getContext().getAccountNumber());
+		cloudVolumeVO.setCloudName(provider.getCloudName());
+		cloudVolumeVO.setCloudProvider(provider.getProviderName());
+		cloudVolumeVO.setCloudRegionId(provider.getContext().getRegionId());
+		cloudVolumeVO.setVolumeMethod("attachVolume");
+		cloudVolumeVO.setVolumeVOList(volumeVOList);
+		
+		return cloudVolumeVO;
 	}
 	
-	public void detachVolumeFromServer(String volumeName, CloudVolumeVO detachVolume) {
+	public CloudVolumeVO detachVolumeFromServer(String providerVolumeId, CloudVolumeVO detachVolume) {
 
-		VolumeVO volumeVO = new VolumeVO();
+		CloudVolumeVO cloudVolumeVO = new CloudVolumeVO();	
 		List<VolumeVO> volumeVOList = new LinkedList<VolumeVO>();
-		Volume volumeDasein = null;
+        Volume volume = null;
+        VolumeVO volumeVO = new VolumeVO();
 		
 		try {
-			volumeSupport.detach(volumeName);
-			volumeDasein = volumeSupport.getVolume(volumeName);
+			volumeSupport.detach(providerVolumeId);
+			volume = volumeSupport.getVolume(providerVolumeId);
 		} catch (InternalException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -181,41 +269,32 @@ public class VolumeResource extends BaseCloudService {
 			logger.info(volumeVO);
 		}
 		
-		volumeVO = convertVolume(volumeDasein);
+		volumeVO = convertVolume(volume);
 		volumeVOList.add(volumeVO);
-		detachVolume.setVolumeVOList(volumeVOList);
 		
+		cloudVolumeVO.setCloudAccountNumber(provider.getContext().getAccountNumber());
+		cloudVolumeVO.setCloudName(provider.getCloudName());
+		cloudVolumeVO.setCloudProvider(provider.getProviderName());
+		cloudVolumeVO.setCloudRegionId(provider.getContext().getRegionId());
+		cloudVolumeVO.setVolumeMethod("detachVolume");
+		cloudVolumeVO.setVolumeVOList(volumeVOList);
+		
+		return cloudVolumeVO;
 	}
 	
-	@DELETE
-	@Path("{volumeName}")
-	public void removeVolume(@PathParam("volumeName") String volumeName, @Context UriInfo info) {
-		
-		try {
-			volumeSupport.remove(volumeName);
-		} catch (InternalException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (CloudException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		// todo, modified the volume status locally.
-		// CloudVolumeVO removeVolume;
-	}
-	   
+	@LinkResource(value = CloudVolumeVO.class, rel = "add")
 	@POST
 	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
 	public Response createVolume(CloudVolumeVO createVolume) throws InternalException, CloudException {
 		
-		VolumeVO volumeVO = new VolumeVO();
+		CloudVolumeVO cloudVolumeVO = new CloudVolumeVO();	
 		List<VolumeVO> volumeVOList = new LinkedList<VolumeVO>();
+		VolumeVO volumeVO = new VolumeVO();
 		
 		String fromSnapshot = null;		
 		String volumeName = null;
 		int volumeSize = createVolume.getVolumeVOList().get(0).getSizeInGb();
-		String dataCenterId = createVolume.getVolumeVOList().get(0).getDataCenterId();
+		String dataCenterId = createVolume.getVolumeVOList().get(0).getZoneId();
 		
 		try {
 			volumeName = volumeSupport.create(fromSnapshot, volumeSize, dataCenterId);
@@ -229,43 +308,64 @@ public class VolumeResource extends BaseCloudService {
 		
 		volumeVO = convertVolume(volumeSupport.getVolume(volumeName));
 		volumeVOList.add(volumeVO);
-		createVolume.setVolumeVOList(volumeVOList);
 		
-		return Response.created(URI.create("/volume/" + volumeVO.getVolumeName())).build();
+		cloudVolumeVO.setProviderVolumeId(volumeVO.getProviderVolumeId());
+		cloudVolumeVO.setCloudAccountNumber(provider.getContext().getAccountNumber());
+		cloudVolumeVO.setCloudName(provider.getCloudName());
+		cloudVolumeVO.setCloudProvider(provider.getProviderName());
+		cloudVolumeVO.setCloudRegionId(provider.getContext().getRegionId());
+		cloudVolumeVO.setVolumeMethod("createVolume");
+		cloudVolumeVO.setVolumeVOList(volumeVOList);
+		
+		return Response.created(URI.create("/volume/" + volumeVO.getProviderVolumeId())).build();
 		
 	}
 	
-	public VolumeVO convertVolume(Volume volume) {
+	@LinkResource(value = CloudVolumeVO.class, rel = "remove")
+	@DELETE
+	@Path("{providerVolumeId}")
+	public void removeVolume(@PathParam("providerVolumeId") String providerVolumeId, @Context UriInfo info) {
 		
-		VolumeVO volumeObj = new VolumeVO();
-		
-		volumeObj.setVolumeName(volume.getName());
-		volumeObj.setDescription(volume.getName());
-		volumeObj.setSizeInGb(volume.getSizeInGigabytes());
-		volumeObj.setCreationTimestamp(volume.getCreationTimestamp());
-		volumeObj.setVolumeStatus(volume.getCurrentState());
-		volumeObj.setSnapshotId(volume.getProviderSnapshotId());
-		volumeObj.setServerId(volume.getProviderVirtualMachineId());
-		volumeObj.setDeviceId(volume.getDeviceId());
-		volumeObj.setCloud(provider.getCloudName());
-		volumeObj.setDataCenterId(volume.getProviderDataCenterId());
-		volumeObj.setProviderRegionId(volume.getProviderRegionId());
-			
-		if(volume.getProviderVirtualMachineId() == null) {
-			volumeObj.setRemovable(true);
-		} else {
-			volumeObj.setRemovable(false);
+		try {
+			volumeSupport.remove(providerVolumeId);
+		} catch (InternalException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (CloudException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		
-		if((volume.getCurrentState().equals("AVAILABLE")) && (volume.getProviderVirtualMachineId() != null)) {
-			volumeObj.setAvailable(true);
-		} else {
-			volumeObj.setAvailable(false);
-		}
-		
-		return volumeObj;
 		
 	}
-
+	   
+	public VolumeVO convertVolume(Volume volume) {
+		
+		VolumeVO volumeVO = new VolumeVO();
+		
+		volumeVO.setVolumeId("tbd");
+		volumeVO.setEncrypted(false);
+		
+		if(volume.getProviderVirtualMachineId() != null) {
+			volumeVO.setRemovable(false);
+			volumeVO.setVolumeStatus("IN-USE");
+		} else {
+			volumeVO.setRemovable(true);
+			volumeVO.setVolumeStatus("AVAILABLE");
+		}
+		
+		volumeVO.setBudget(0);
+		
+		volumeVO.setProviderVolumeId(volume.getProviderVolumeId());
+		volumeVO.setVolumeName(volume.getName());
+		volumeVO.setSizeInGb(volume.getSizeInGigabytes());
+		volumeVO.setCreationTimestamp(volume.getCreationTimestamp());
+		volumeVO.setDescription(volume.getName());
+		volumeVO.setServerId(volume.getProviderVirtualMachineId());
+		volumeVO.setDeviceId(volume.getDeviceId());
+		volumeVO.setSnapshotId(volume.getProviderSnapshotId());
+		volumeVO.setZoneId(volume.getProviderDataCenterId());
+		
+		return volumeVO;
+	}
 
 }

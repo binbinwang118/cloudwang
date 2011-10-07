@@ -152,3 +152,24 @@ curl -v -k -X GET -H "Accept: application/json" http://localhost:8080/cloudwang/
 curl -v -k -X GET -H "Accept: application/xml" http://localhost:8080/cloudwang/rs/server/FIX_ME_Server_Id/metrics?period=yes&from=***&to=***
 curl -v -k -X GET -H "Accept: application/json" http://localhost:8080/cloudwang/rs/server/FIX_ME_Server_Id/metrics?period=yes&from=***&to=***
 
+
+
+Volume
+curl -v -k -X GET -H "Accept: application/xml"  http://localhost:8080/cloudwang/rs/volume
+curl -v -k -X GET -H "Accept: application/json"  http://localhost:8080/cloudwang/rs/volume
+
+curl -v -k -X GET -H "Accept: application/xml"  http://localhost:8080/cloudwang/rs/volume/FIX_ME_Volume_Id
+curl -v -k -X GET -H "Accept: application/json"  http://localhost:8080/cloudwang/rs/volume/FIX_ME_Volume_Id
+
+curl -v -k -X HEAD http://localhost:8080/cloudwang/rs/volume/FIX_ME_Volume_Id
+
+
+curl -v -k -X PUT -H "Content-Type: application/xml" --data '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cloudVolumes><volumeMethod>attachVolume</volumeMethod><volume><serverId>FIX_ME_ServerId</serverId><deviceId>FIX_ME_DeviceId</deviceId></volume></cloudVolumes>' http://localhost:8080/cloudwang/rs/FIX_ME_Volume_Id
+
+curl -v -k -X PUT -H "Content-Type: application/xml" --data '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cloudVolumes><volumeMethod>detachVolume</volumeMethod></cloudVolumes>' http://localhost:8080/cloudwang/rs/volume/FIX_ME_Volume_Id
+
+
+curl -v -k -X POST -H "Content-Type: application/xml" --data '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cloudVolumes><volumeMethod>createVolume</volumeMethod><volume><zoneId>FIX_ME_ZoneId</zoneId><sizeInGb>FIX_ME_Volume_Size_INT</sizeInGb></volume></cloudVolumes>' http://localhost:8080/cloudwang/rs/volume/
+
+
+curl -v -k -X DELETE http://localhost:8080/cloudwang/rs/volume/FIX_ME_Volume_Id

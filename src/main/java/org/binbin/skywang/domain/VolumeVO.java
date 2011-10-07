@@ -23,83 +23,57 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
-import org.dasein.cloud.compute.VolumeState;
-
 @XmlRootElement(name = "volume")
-@XmlType(propOrder = {"customer", "owningAccount", "owningUser", "owningGroups", "volumeName", "description", "sizeInGb", "volumeStatus", 
-		"creationTimestamp", "snapshotId", "serverId", "deviceId", "lable",  "cloud", "providerRegionId", "dataCenterId", "array"})
+@XmlType(propOrder = {"providerVolumeId", "volumeName", "sizeInGb", "creationTimestamp", "volumeStatus", 
+		"description", "serverId", "deviceId", "zoneId", "snapshotId"})
 public class VolumeVO{
 
-	private int			volumeId;
-	private boolean 	available;
-	private int			budget;		// tbd. did not use
-	private boolean		encrypted;	// did not use
+	private String		volumeId;
+	private boolean		encrypted;
 	private boolean		removable;
-    private int         sizeInGb;
-	private VolumeState volumeStatus;
-	private String		array;		// tbd. did not use
-    private long        creationTimestamp;
-    private String		description;
-    private String      deviceId;
-    private VolumeLable	lable;		// tbd. did not use
-    private String      volumeName;
-	private String		cloud;
-    private String      dataCenterId;
-    private String      providerRegionId;
-    private String      serverId;
-    private String      snapshotId;   
-    private int			customer;		// tbd. did not use
-    private int			owningAccount;	// tbd. did not use
-    private int			owningGroups;	// tbd. did not use
-    private String		owningUser;		// tbd. did not use
+	private int			budget;
+
+	private String		providerVolumeId;
+	private String      volumeName;
+	private int         sizeInGb;
+	private long        creationTimestamp;
+	private String		volumeStatus;
+	private String		description;
+	private String      serverId;
+	private String      deviceId;  
+	private String      zoneId;
+	private String      snapshotId;   
+	
+	/** todo, volume metrics */
+//	private List <VolumeMetrics>	  volumeMetrics;
 	
 	public VolumeVO() {}
-	
-    public VolumeVO(int volumeId, boolean available, int budget,
-			boolean encrypted, boolean removable, int sizeInGb,
-			VolumeState volumeStatus, String array, long creationTimestamp,
-			String description, String deviceId, VolumeLable lable,
-			String volumeName, String cloud, String dataCenterId,
-			String providerRegionId, String serverId, String snapshotId,
-			int customer, int owningAccount, int owningGroups, String owningUser) {
+
+	public VolumeVO(String volumeId, boolean encrypted, boolean removable,
+			int budget, String providerVolumeId, String volumeName,
+			int sizeInGb, long creationTimestamp, String volumeStatus,
+			String description, String serverId, String deviceId,
+			String zoneId, String snapshotId) {
 		super();
 		this.volumeId = volumeId;
-		this.available = available;
-		this.budget = budget;
 		this.encrypted = encrypted;
 		this.removable = removable;
-		this.sizeInGb = sizeInGb;
-		this.volumeStatus = volumeStatus;
-		this.array = array;
-		this.creationTimestamp = creationTimestamp;
-		this.description = description;
-		this.deviceId = deviceId;
-		this.lable = lable;
+		this.budget = budget;
+		this.providerVolumeId = providerVolumeId;
 		this.volumeName = volumeName;
-		this.cloud = cloud;
-		this.dataCenterId = dataCenterId;
-		this.providerRegionId = providerRegionId;
+		this.sizeInGb = sizeInGb;
+		this.creationTimestamp = creationTimestamp;
+		this.volumeStatus = volumeStatus;
+		this.description = description;
 		this.serverId = serverId;
+		this.deviceId = deviceId;
+		this.zoneId = zoneId;
 		this.snapshotId = snapshotId;
-		this.customer = customer;
-		this.owningAccount = owningAccount;
-		this.owningGroups = owningGroups;
-		this.owningUser = owningUser;
 	}
-	
+
 	@XmlAttribute
-	public int getVolumeId() {
+	public String getVolumeId() {
 		return volumeId;
-	}
-
-	@XmlAttribute
-	public boolean isAvailable() {
-		return available;
-	}
-
-	@XmlAttribute
-	public int getBudget() {
-		return budget;
 	}
 
 	@XmlAttribute
@@ -112,39 +86,14 @@ public class VolumeVO{
 		return removable;
 	}
 
-	@XmlElement
-	public int getSizeInGb() {
-		return sizeInGb;
+	@XmlAttribute
+	public int getBudget() {
+		return budget;
 	}
 
 	@XmlElement
-	public VolumeState getVolumeStatus() {
-		return volumeStatus;
-	}
-
-	@XmlElement
-	public String getArray() {
-		return array;
-	}
-
-	@XmlElement
-	public long getCreationTimestamp() {
-		return creationTimestamp;
-	}
-
-	@XmlElement
-	public String getDescription() {
-		return description;
-	}
-
-	@XmlElement
-	public String getDeviceId() {
-		return deviceId;
-	}
-
-	@XmlElement
-	public VolumeLable getLable() {
-		return lable;
+	public String getProviderVolumeId() {
+		return providerVolumeId;
 	}
 
 	@XmlElement
@@ -153,18 +102,23 @@ public class VolumeVO{
 	}
 
 	@XmlElement
-	public String getCloud() {
-		return cloud;
+	public int getSizeInGb() {
+		return sizeInGb;
 	}
 
 	@XmlElement
-	public String getDataCenterId() {
-		return dataCenterId;
+	public long getCreationTimestamp() {
+		return creationTimestamp;
 	}
 
 	@XmlElement
-	public String getProviderRegionId() {
-		return providerRegionId;
+	public String getVolumeStatus() {
+		return volumeStatus;
+	}
+
+	@XmlElement
+	public String getDescription() {
+		return description;
 	}
 
 	@XmlElement
@@ -173,36 +127,22 @@ public class VolumeVO{
 	}
 
 	@XmlElement
+	public String getDeviceId() {
+		return deviceId;
+	}
+
+	@XmlElement
+	public String getZoneId() {
+		return zoneId;
+	}
+
+	@XmlElement
 	public String getSnapshotId() {
 		return snapshotId;
 	}
 
-	@XmlElement
-	public int getCustomer() {
-		return customer;
-	}
-
-	@XmlElement
-	public int getOwningAccount() {
-		return owningAccount;
-	}
-
-	@XmlElement
-	public int getOwningGroups() {
-		return owningGroups;
-	}
-
-	@XmlElement
-	public String getOwningUser() {
-		return owningUser;
-	}
-
-	public void setAvailable(boolean available) {
-		this.available = available;
-	}
-
-	public void setBudget(int budget) {
-		this.budget = budget;
+	public void setVolumeId(String volumeId) {
+		this.volumeId = volumeId;
 	}
 
 	public void setEncrypted(boolean encrypted) {
@@ -213,76 +153,49 @@ public class VolumeVO{
 		this.removable = removable;
 	}
 
-	public void setSizeInGb(int sizeInGb) {
-		this.sizeInGb = sizeInGb;
+	public void setBudget(int budget) {
+		this.budget = budget;
 	}
 
-	public void setVolumeId(int volumeId) {
-		this.volumeId = volumeId;
-	}
-
-	public void setVolumeStatus(VolumeState volumeStatus) {
-		this.volumeStatus = volumeStatus;
-	}
-
-	public void setArray(String array) {
-		this.array = array;
-	}
-
-	public void setCreationTimestamp(long creationTimestamp) {
-		this.creationTimestamp = creationTimestamp;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
-	}
-
-	public void setDeviceId(String deviceId) {
-		this.deviceId = deviceId;
-	}
-
-	public void setLable(VolumeLable lable) {
-		this.lable = lable;
+	public void setProviderVolumeId(String providerVolumeId) {
+		this.providerVolumeId = providerVolumeId;
 	}
 
 	public void setVolumeName(String volumeName) {
 		this.volumeName = volumeName;
 	}
 
-	public void setCloud(String cloud) {
-		this.cloud = cloud;
+	public void setSizeInGb(int sizeInGb) {
+		this.sizeInGb = sizeInGb;
 	}
 
-	public void setDataCenterId(String dataCenterId) {
-		this.dataCenterId = dataCenterId;
+	public void setCreationTimestamp(long creationTimestamp) {
+		this.creationTimestamp = creationTimestamp;
 	}
 
-	public void setProviderRegionId(String providerRegionId) {
-		this.providerRegionId = providerRegionId;
+	public void setVolumeStatus(String volumeStatus) {
+		this.volumeStatus = volumeStatus;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
 	}
 
 	public void setServerId(String serverId) {
 		this.serverId = serverId;
 	}
 
+	public void setDeviceId(String deviceId) {
+		this.deviceId = deviceId;
+	}
+
+	public void setZoneId(String zoneId) {
+		this.zoneId = zoneId;
+	}
+
 	public void setSnapshotId(String snapshotId) {
 		this.snapshotId = snapshotId;
 	}
-
-	public void setCustomer(int customer) {
-		this.customer = customer;
-	}
-
-	public void setOwningAccount(int owningAccount) {
-		this.owningAccount = owningAccount;
-	}
-
-	public void setOwningGroups(int owningGroups) {
-		this.owningGroups = owningGroups;
-	}
-
-	public void setOwningUser(String owningUser) {
-		this.owningUser = owningUser;
-	}
+	
 	
 }
