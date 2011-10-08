@@ -19,33 +19,51 @@ package org.binbin.skywang.domain;
 
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementRef;
+import javax.xml.bind.annotation.XmlID;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
+import org.jboss.resteasy.annotations.providers.jaxb.json.Mapped;
+import org.jboss.resteasy.annotations.providers.jaxb.json.XmlNsMap;
+import org.jboss.resteasy.links.RESTServiceDiscovery;
+
+@Mapped(namespaceMap = @XmlNsMap(jsonName = "atom", namespace = "http://www.w3.org/2005/Atom"))
 @XmlRootElement(name = "cloudMachineImage")
 @XmlType(propOrder ={"machineImageMethod", "cloudProvider","cloudName","cloudAccountNumber",
-		"cloudRegionId","machineImageVOList"})
+		"cloudRegionId", "rest", "links", "machineImageVOList"})
 public class CloudMachineImageVO {
 	
-	private String machineImageMethod;
-	private String cloudProvider;
-	private String cloudName;
-	private String cloudAccountNumber;
-	private String cloudRegionId;
-	protected List<MachineImageVO> machineImageVOList;
+	private String					 machineImageMethod;
+	private String					 cloudProvider;
+	private String					 cloudName;
+	private String 				     cloudAccountNumber;
+	private String 					 cloudRegionId;
+	protected List<MachineImageVO> 	 machineImageVOList;
+	private String					 providerMachineImageId;
+	private RESTServiceDiscovery 	 rest;
+	private List<Link> 				 links;
 
 	public CloudMachineImageVO() {}
 
 	public CloudMachineImageVO(String machineImageMethod, String cloudProvider,
 			String cloudName, String cloudAccountNumber, String cloudRegionId,
-			List<MachineImageVO> machineImageVOList) {
+			List<MachineImageVO> machineImageVOList,
+			String providerMachineImageId, RESTServiceDiscovery rest,
+			List<Link> links) {
+		super();
 		this.machineImageMethod = machineImageMethod;
 		this.cloudProvider = cloudProvider;
 		this.cloudName = cloudName;
 		this.cloudAccountNumber = cloudAccountNumber;
 		this.cloudRegionId = cloudRegionId;
 		this.machineImageVOList = machineImageVOList;
+		this.providerMachineImageId = providerMachineImageId;
+		this.rest = rest;
+		this.links = links;
 	}
 
 	@XmlElement
@@ -73,9 +91,25 @@ public class CloudMachineImageVO {
 		return cloudRegionId;
 	}
 
-	@XmlElement(name = "machineImage")
+	@XmlElement (name = "machineImage")
 	public List<MachineImageVO> getMachineImageVOList() {
 		return machineImageVOList;
+	}
+
+	@XmlID
+	@XmlAttribute
+	public String getProviderMachineImageId() {
+		return providerMachineImageId;
+	}
+
+	@XmlElementRef
+	public RESTServiceDiscovery getRest() {
+		return rest;
+	}
+	
+	@XmlElementRef
+	public List<Link> getLinks() {
+		return links;
 	}
 
 	public void setMachineImageMethod(String machineImageMethod) {
@@ -101,9 +135,40 @@ public class CloudMachineImageVO {
 	public void setMachineImageVOList(List<MachineImageVO> machineImageVOList) {
 		this.machineImageVOList = machineImageVOList;
 	}
-	
-	
 
+	public void setProviderMachineImageId(String providerMachineImageId) {
+		this.providerMachineImageId = providerMachineImageId;
+	}
+
+	public void setRest(RESTServiceDiscovery rest) {
+		this.rest = rest;
+	}
+
+	public void setLinks(List<Link> links) {
+		this.links = links;
+	}
 	
+	@XmlTransient
+	public String getNext()
+	{
+		if (links == null) return null;
+		for (Link link : links)
+		{
+			if ("next".equals(link.getRelationship())) return link.getHref();
+		}
+		return null;
+	}
+
+	@XmlTransient
+	public String getPrevious()
+	{
+		if (links == null) return null;
+		for (Link link : links)
+		{
+			if ("previous".equals(link.getRelationship())) return link.getHref();
+		}
+		return null;
+	}
+
 
 }

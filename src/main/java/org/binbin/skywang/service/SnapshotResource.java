@@ -198,7 +198,7 @@ public class SnapshotResource extends BaseCloudService {
 	@LinkResource(value = CloudSnapshotVO.class, rel = "headSnapshotList")
 	@HEAD
 	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-	public Response getSnapshotHead(@Context UriInfo info) {
+	public Response getSnapshotListHead(@Context UriInfo info) {
 		
 		List<Snapshot> snapshot		= null;
 		

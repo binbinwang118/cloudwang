@@ -28,14 +28,13 @@ import org.dasein.cloud.compute.MachineImageType;
 import org.dasein.cloud.compute.Platform;
 
 @XmlType(propOrder ={"providermachineImageId", "name", "description", "machineImageType", 
-		"public", "architecture", "platform", "creationTimestamp", "providerOwnerId", 
+		"public", "sharable", "architecture", "platform", "creationTimestamp", "providerOwnerId", 
 		"agentName", "software", "serverId", "share"})
 public class MachineImageVO {
 	
 	private String				machineImageId;
 	private MachineImageState	status;
 	private boolean				removable;
-	private boolean				sharable;
 	private	int					budget;
 	
 	private String				providermachineImageId;
@@ -43,6 +42,7 @@ public class MachineImageVO {
 	private String				description;
 	private MachineImageType	machineImageType;
 	private boolean				isPublic;
+	private boolean				sharable;
 	private Architecture		architecture;
 	private Platform			platform;
 	private Date				creationTimestamp;
@@ -96,11 +96,6 @@ public class MachineImageVO {
 	}
 
 	@XmlAttribute
-	public boolean isSharable() {
-		return sharable;
-	}
-
-	@XmlAttribute
 	public int getBudget() {
 		return budget;
 	}
@@ -130,6 +125,11 @@ public class MachineImageVO {
 		return isPublic;
 	}
 
+	@XmlElement
+	public boolean isSharable() {
+		return sharable;
+	}
+	
 	@XmlElement
 	public Architecture getArchitecture() {
 		return architecture;
