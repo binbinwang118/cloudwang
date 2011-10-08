@@ -246,7 +246,7 @@ public class MachineImageResource extends BaseCloudService {
 		return response;
 	}
 	
-	@LinkResource(value = CloudMachineImageVO.class, rel = "headMachineImage")
+	@LinkResource(value = CloudMachineImageVO.class, rel = "HEAD MachineImage")
 	@HEAD
 	@Path("{providerMachineImageId}")
 	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
@@ -278,7 +278,7 @@ public class MachineImageResource extends BaseCloudService {
 		
 	}
 	
-	@LinkResource(value = CloudMachineImageVO.class, rel = "headMachineImageList")
+	@LinkResource(value = CloudMachineImageVO.class, rel = "HEAD MachineImageList")
 	@HEAD
 	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
 	public Response getMachineImageListHead(@Context UriInfo info) {

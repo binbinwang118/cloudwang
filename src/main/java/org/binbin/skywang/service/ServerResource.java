@@ -5,22 +5,29 @@ import java.util.LinkedList;
 import java.util.List;
 
 import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-
-import org.jboss.logging.Logger;
 
 import org.binbin.skywang.domain.CloudServerVO;
 import org.binbin.skywang.domain.ServerVO;
+
 import org.dasein.cloud.CloudException;
 import org.dasein.cloud.InternalException;
 import org.dasein.cloud.compute.VirtualMachine;
 import org.dasein.cloud.compute.VirtualMachineSupport;
 import org.dasein.cloud.compute.VmStatistics;
+
+import org.jboss.logging.Logger;
+import org.jboss.resteasy.links.AddLinks;
+import org.jboss.resteasy.links.LinkResource;
+import org.jboss.resteasy.specimpl.ResponseBuilderImpl;
 
 @Path("/server")
 public class ServerResource extends BaseCloudService {
@@ -34,16 +41,32 @@ public class ServerResource extends BaseCloudService {
 		serverSupport = provider.getComputeServices().getVirtualMachineSupport();
 	}
 	
+	@AddLinks
+	@LinkResource(value = CloudServerVO.class, rel = "list")
 	@GET
 	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-	public CloudServerVO listServer() {
+	public Response listServer() {
 		
 		CloudServerVO cloudServerVO = new CloudServerVO();
 		List<ServerVO> serverVOList = new LinkedList<ServerVO>();
 		Iterable<VirtualMachine> server = null;
 		
+		ResponseBuilderImpl builder = new ResponseBuilderImpl();
+		
 		try {
 			server = serverSupport.listVirtualMachines();
+			
+			if (server == null) {
+				builder.type(MediaType.TEXT_PLAIN);
+				builder.entity("The requested resource is not found!");
+				builder.status(Response.Status.NOT_FOUND);
+				Response response = builder.build();
+				throw new WebApplicationException(response);
+			}
+			
+			for(VirtualMachine tmpServer : server) {
+				serverVOList.add(convertServer(tmpServer));
+			}
 		} catch (InternalException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -52,10 +75,7 @@ public class ServerResource extends BaseCloudService {
 			e.printStackTrace();
 		}
 		
-		for(VirtualMachine tmpServer : server) {
-			serverVOList.add(convertServer(tmpServer));
-		}
-		
+		cloudServerVO.setProviderServerId("providerServerId");
 		cloudServerVO.setServerMethod("listServer");
 		cloudServerVO.setCloudProvider(provider.getProviderName());
 		cloudServerVO.setCloudName(provider.getCloudName());
@@ -63,21 +83,38 @@ public class ServerResource extends BaseCloudService {
 		cloudServerVO.setCloudRegionId(provider.getContext().getRegionId());
 		cloudServerVO.setServerVOList(serverVOList);
 
-		return cloudServerVO;
+		builder.status(Response.Status.OK);
+		builder.entity(cloudServerVO);
+		Response response = builder.build();
+		return response;
 	}
 	
+	@AddLinks
+	@LinkResource(value = CloudServerVO.class, rel = "self")
 	@GET
 	@Path("{providerServerId}")
 	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-	public CloudServerVO getServer(@PathParam("providerServerId") String providerServerId) {
+	public Response getServer(@PathParam("providerServerId") String providerServerId) {
 		
 		CloudServerVO cloudServerVO = new CloudServerVO();
 		List<ServerVO> serverVOList = new LinkedList<ServerVO>();
 		
 		VirtualMachine server = null;
+		ResponseBuilderImpl builder = new ResponseBuilderImpl();
 		
 		try {
 			server = serverSupport.getVirtualMachine(providerServerId);
+			
+			if (server == null) {
+				builder.type(MediaType.TEXT_PLAIN);
+				builder.entity("The requested resource is not found!");
+				builder.status(Response.Status.NOT_FOUND);
+				Response response = builder.build();
+				throw new WebApplicationException(response);
+			} else {
+				serverVOList.add(convertServer(server));
+			}
+			
 		} catch (InternalException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -86,8 +123,7 @@ public class ServerResource extends BaseCloudService {
 			e.printStackTrace();
 		}
 		
-		serverVOList.add(convertServer(server));
-		
+		cloudServerVO.setProviderServerId(providerServerId);
 		cloudServerVO.setServerMethod("getServer");
 		cloudServerVO.setCloudProvider(provider.getProviderName());
 		cloudServerVO.setCloudName(provider.getCloudName());
@@ -95,18 +131,106 @@ public class ServerResource extends BaseCloudService {
 		cloudServerVO.setCloudRegionId(provider.getContext().getRegionId());
 		cloudServerVO.setServerVOList(serverVOList);
 		
-		return cloudServerVO;
+		builder.status(Response.Status.OK);
+		builder.entity(cloudServerVO);
+		Response response = builder.build();
+		return response;
 		
 	}
 	
+	@LinkResource(value = CloudServerVO.class, rel = "HEAD Server")
+	@HEAD
+	@Path("{providerServerId}")
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+	public Response getServereHead(@PathParam("providerServerId") String providerServerId, @Context UriInfo info) {
+		
+		VirtualMachine server = null;
+		ResponseBuilderImpl builder = new ResponseBuilderImpl();
+		Response response 			= null;
+		
+		try {
+			server = serverSupport.getVirtualMachine(providerServerId);
+			
+			if (server == null) {
+				builder.type(MediaType.TEXT_PLAIN);
+				builder.entity("The requested resource is not found!");
+				builder.status(Response.Status.NOT_FOUND);
+				response = builder.build();
+				throw new WebApplicationException(response);
+			} else {
+				builder.status(Response.Status.OK);
+				response = builder.build();
+			}
+			
+		} catch (InternalException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (CloudException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return response;
+	}
+	
+	@LinkResource(value = CloudServerVO.class, rel = "HEAD ServerList")
+	@HEAD
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+	public Response getServerListHead(@Context UriInfo info) {
+		
+		List<VirtualMachine> server = null;
+		
+		ResponseBuilderImpl builder = new ResponseBuilderImpl();
+		Response response 			= null;
+		
+		try {
+			server = (List<VirtualMachine>) serverSupport.listVirtualMachines();
+			
+			if (server == null) {
+				builder.type(MediaType.TEXT_PLAIN);
+				builder.entity("The requested resource is not found!");
+				builder.status(Response.Status.NOT_FOUND);
+				response = builder.build();
+				throw new WebApplicationException(response);
+			} else {
+				int serverNumber = server.size();
+				builder.header("Server Number", serverNumber);
+				builder.status(Response.Status.OK);
+				response = builder.build();
+			}
+		} catch (InternalException e) {
+			e.printStackTrace();
+		} catch (CloudException e) {
+			e.printStackTrace();
+		}
+		
+		return response;
+	}
+	
+	@LinkResource(value = CloudServerVO.class, rel = "GET ServerConsole")
 	@GET
 	@Path("{providerServerId}/console")
 	@Produces({MediaType.TEXT_PLAIN})
-	public String getServerOutput(@PathParam("providerServerId") String providerServerId) {
+	public Response getServerOutput(@PathParam("providerServerId") String providerServerId) {
 		
 		String output = null;
+		ResponseBuilderImpl builder = new ResponseBuilderImpl();
+		Response response 			= null;
+		
 		try {
 			output = serverSupport.getConsoleOutput(providerServerId);
+			
+			if (output == null) {
+				builder.type(MediaType.TEXT_PLAIN);
+				builder.entity("The requested resource is not found!");
+				builder.status(Response.Status.NOT_FOUND);
+				response = builder.build();
+				throw new WebApplicationException(response);
+			} else {
+				builder.status(Response.Status.OK);
+				builder.entity(output);
+				response = builder.build();
+			}
+			
 		} catch (InternalException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -115,13 +239,14 @@ public class ServerResource extends BaseCloudService {
 			e.printStackTrace();
 		}
 		
-		return output;
+		return response;
 	}
 	
+	@LinkResource(value = CloudServerVO.class, rel = "GET ServerMetrics")
 	@GET
 	@Path("{providerServerId}/metrics")
 	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-	public CloudServerVO getServerMetrics(@PathParam("providerServerId") String providerServerId, @Context UriInfo info) {
+	public Response getServerMetrics(@PathParam("providerServerId") String providerServerId, @Context UriInfo info) {
 		
 		CloudServerVO cloudServerVO = new CloudServerVO();
 		List<ServerVO> serverVOList = new LinkedList<ServerVO>();
@@ -130,6 +255,8 @@ public class ServerResource extends BaseCloudService {
 		List <VmStatistics> vmStatistics = new LinkedList<VmStatistics>();
 		long from, to;
 		String period = null;
+		
+		ResponseBuilderImpl builder = new ResponseBuilderImpl();
 		
 		if(info.getQueryParameters().containsKey("period")) {
 			period = info.getQueryParameters().getFirst("period");
@@ -165,6 +292,15 @@ public class ServerResource extends BaseCloudService {
 				VmStatistics tempvmStatistic = serverSupport.getVMStatistics(providerServerId, from, to);
 				vmStatistics.add(tempvmStatistic);
 			}
+			
+			if (vmStatistics == null) {
+				builder.type(MediaType.TEXT_PLAIN);
+				builder.entity("The requested resource is not found!");
+				builder.status(Response.Status.NOT_FOUND);
+				Response response = builder.build();
+				throw new WebApplicationException(response);
+			}
+			
 		} catch (InternalException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -177,6 +313,7 @@ public class ServerResource extends BaseCloudService {
 		serverVO.setVmStatistics(vmStatistics);
 		serverVOList.add(serverVO);
 		
+		cloudServerVO.setProviderServerId(providerServerId);
 		cloudServerVO.setServerMethod("getServerMetrics");
 		cloudServerVO.setCloudProvider(provider.getProviderName());
 		cloudServerVO.setCloudName(provider.getCloudName());
@@ -184,7 +321,10 @@ public class ServerResource extends BaseCloudService {
 		cloudServerVO.setCloudRegionId(provider.getContext().getRegionId());
 		cloudServerVO.setServerVOList(serverVOList);
 		
-		return cloudServerVO;
+		builder.status(Response.Status.OK);
+		builder.entity(cloudServerVO);
+		Response response = builder.build();
+		return response;
 		
 	}
 	

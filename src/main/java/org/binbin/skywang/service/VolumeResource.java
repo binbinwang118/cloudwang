@@ -162,7 +162,7 @@ public class VolumeResource extends BaseCloudService {
 	
 	}
 	
-	@LinkResource(value = CloudVolumeVO.class, rel = "headVolume")
+	@LinkResource(value = CloudVolumeVO.class, rel = "HEAD Volume")
 	@HEAD
 	@Path("{providerVolumeId}")
 	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
@@ -195,7 +195,7 @@ public class VolumeResource extends BaseCloudService {
 		return response;	
 	}
 	
-	@LinkResource(value = CloudVolumeVO.class, rel = "headVolumeList")
+	@LinkResource(value = CloudVolumeVO.class, rel = "HEAD VolumeList")
 	@HEAD
 	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
 	public Response getVolumeListHeaders(@Context UriInfo uriInfo) {

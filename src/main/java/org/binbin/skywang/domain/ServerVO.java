@@ -23,6 +23,7 @@ import java.util.Map;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 import org.dasein.cloud.compute.Architecture;
@@ -31,6 +32,7 @@ import org.dasein.cloud.compute.VirtualMachineProduct;
 import org.dasein.cloud.compute.VmState;
 import org.dasein.cloud.compute.VmStatistics;
 
+@XmlRootElement(name = "server")
 @XmlType(propOrder ={"providerServerId", "name","description", "providerOwnerId", "architecture", "platform", 
 		"product", "monitoring", "vmStatistics",  "clonable", "pausable", "rebootable", "removable", 
 		"creationTimestamp", "lastBootTimestamp", "lastPauseTimestamp", "terminationTimestamp",  "providerMachineImageId", 

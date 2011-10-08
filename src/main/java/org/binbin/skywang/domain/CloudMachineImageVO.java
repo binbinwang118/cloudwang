@@ -170,5 +170,4 @@ public class CloudMachineImageVO {
 		return null;
 	}
 
-
 }

@@ -160,7 +160,7 @@ public class SnapshotResource extends BaseCloudService {
 		return response;
 	}
 	
-	@LinkResource(value = CloudSnapshotVO.class, rel = "headSnapshot")
+	@LinkResource(value = CloudSnapshotVO.class, rel = "HEAD Snapshot")
 	@HEAD
 	@Path("{providerSnapshotId}")
 	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
@@ -195,7 +195,7 @@ public class SnapshotResource extends BaseCloudService {
 		return response;	
 	}
 	
-	@LinkResource(value = CloudSnapshotVO.class, rel = "headSnapshotList")
+	@LinkResource(value = CloudSnapshotVO.class, rel = "HEAD SnapshotList")
 	@HEAD
 	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
 	public Response getSnapshotListHead(@Context UriInfo info) {
