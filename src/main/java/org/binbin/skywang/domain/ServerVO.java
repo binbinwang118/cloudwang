@@ -19,8 +19,6 @@
 package org.binbin.skywang.domain;
 
 import java.util.List;
-import java.util.Map;
-
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -34,10 +32,10 @@ import org.dasein.cloud.compute.VmStatistics;
 
 @XmlRootElement(name = "server")
 @XmlType(propOrder ={"providerServerId", "name","description", "providerOwnerId", "architecture", "platform", 
-		"product", "monitoring", "vmStatistics",  "clonable", "pausable", "rebootable", "removable", 
+		"product", "monitoring", "vmMetrics",  "clonable", "pausable", "rebootable", "removable", 
 		"creationTimestamp", "lastBootTimestamp", "lastPauseTimestamp", "terminationTimestamp",  "providerMachineImageId", 
 		"publicIpAddresses", "publicDnsAddress",   "privateDnsAddress",  "privateIpAddresses", "providerAssignedIpAddressId", 
-		"providerVlanId",  "rootPassword",  "rootUser", "tags"})
+		"providerVlanId",  "rootPassword",  "rootUser", "tags", "securityGroup", "providerZoneId", "keyPairName"})
 public class ServerVO {
 	
 	private String				  serverId;
@@ -73,21 +71,27 @@ public class ServerVO {
     private String                rootPassword;
     private String                rootUser;
     private String			      tags;   
+    private String				  securityGroup;
+    private String				  providerZoneId;
+    private String				  keyPairName;
     
 	public ServerVO() { }
 
-	public ServerVO(String serverId, String analytics, boolean imagable,
-			boolean persistent, VmState currentState, int budget,
-			String providerServerId, String name, String description,
-			String providerOwnerId, Architecture architecture,
-			Platform platform, VirtualMachineProduct product,List <VmStatistics> vmMetrics,
-			String monitoring, long creationTimestamp, boolean clonable, boolean pausable,
-			boolean rebootable, boolean removable, long lastBootTimestamp,
-			long lastPauseTimestamp, long terminationTimestamp,
-			String providerMachineImageId, String publicDnsAddress,
-			String publicIpAddresses, String privateDnsAddress,
-			String privateIpAddresses, String providerAssignedIpAddressId,
-			String providerVlanId, String rootPassword, String rootUser) {
+
+	public ServerVO(String serverId, boolean imagable, boolean persistent,
+			VmState currentState, int budget, String providerServerId,
+			String name, String description, String providerOwnerId,
+			Architecture architecture, Platform platform,
+			VirtualMachineProduct product, List<VmStatistics> vmMetrics,
+			long creationTimestamp, String monitoring, boolean clonable,
+			boolean pausable, boolean rebootable, boolean removable,
+			long lastBootTimestamp, long lastPauseTimestamp,
+			long terminationTimestamp, String providerMachineImageId,
+			String publicIpAddresses, String publicDnsAddress,
+			String privateIpAddresses, String privateDnsAddress,
+			String providerAssignedIpAddressId, String providerVlanId,
+			String rootPassword, String rootUser, String tags,
+			String securityGroup, String providerZoneId, String keyPairName) {
 		super();
 		this.serverId = serverId;
 		this.imagable = imagable;
@@ -101,8 +105,9 @@ public class ServerVO {
 		this.architecture = architecture;
 		this.platform = platform;
 		this.product = product;
-		this.monitoring = monitoring;
+		this.vmMetrics = vmMetrics;
 		this.creationTimestamp = creationTimestamp;
+		this.monitoring = monitoring;
 		this.clonable = clonable;
 		this.pausable = pausable;
 		this.rebootable = rebootable;
@@ -111,16 +116,20 @@ public class ServerVO {
 		this.lastPauseTimestamp = lastPauseTimestamp;
 		this.terminationTimestamp = terminationTimestamp;
 		this.providerMachineImageId = providerMachineImageId;
-		this.publicDnsAddress = publicDnsAddress;
 		this.publicIpAddresses = publicIpAddresses;
-		this.privateDnsAddress = privateDnsAddress;
+		this.publicDnsAddress = publicDnsAddress;
 		this.privateIpAddresses = privateIpAddresses;
+		this.privateDnsAddress = privateDnsAddress;
 		this.providerAssignedIpAddressId = providerAssignedIpAddressId;
 		this.providerVlanId = providerVlanId;
 		this.rootPassword = rootPassword;
 		this.rootUser = rootUser;
-		this.vmMetrics = vmMetrics;
+		this.tags = tags;
+		this.securityGroup = securityGroup;
+		this.providerZoneId = providerZoneId;
+		this.keyPairName = keyPairName;
 	}
+
 
 	@XmlAttribute
 	public String getServerId() {
@@ -183,7 +192,7 @@ public class ServerVO {
 	}
 
 	@XmlElement
-	public List <VmStatistics> getVmStatistics() {
+	public List <VmStatistics> getVmMetrics() {
 		return vmMetrics;
 	}
 
@@ -282,6 +291,21 @@ public class ServerVO {
 		return tags;
 	}
 
+	@XmlElement
+	public String getSecurityGroup() {
+		return securityGroup;
+	}
+	
+	@XmlElement
+	public String getProviderZoneId() {
+		return providerZoneId;
+	}
+
+	@XmlElement
+	public String getKeyPairName() {
+		return keyPairName;
+	}
+
 
 	public void setServerId(String serverId) {
 		this.serverId = serverId;
@@ -331,7 +355,7 @@ public class ServerVO {
 		this.product = product;
 	}
 
-	public void setVmStatistics(List <VmStatistics> vmMetrics) {
+	public void setVmMetrics(List <VmStatistics> vmMetrics) {
 		this.vmMetrics = vmMetrics;
 	}
 	
@@ -409,5 +433,17 @@ public class ServerVO {
 
 	public void setTags(String tags) {
 		this.tags = tags;
+	}
+	
+	public void setSecurityGroup(String securityGroup) {
+		this.securityGroup = securityGroup;
+	}
+	
+	public void setProviderZoneId(String providerZoneId) {
+		this.providerZoneId = providerZoneId;
+	}
+	
+	public void setKeyPairName(String keyPairName) {
+		this.keyPairName = keyPairName;
 	}
 }

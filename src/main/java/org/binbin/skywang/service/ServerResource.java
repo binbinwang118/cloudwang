@@ -1,11 +1,16 @@
 package org.binbin.skywang.service;
 
 
+import java.net.URI;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -21,6 +26,7 @@ import org.binbin.skywang.domain.ServerVO;
 import org.dasein.cloud.CloudException;
 import org.dasein.cloud.InternalException;
 import org.dasein.cloud.compute.VirtualMachine;
+import org.dasein.cloud.compute.VirtualMachineProduct;
 import org.dasein.cloud.compute.VirtualMachineSupport;
 import org.dasein.cloud.compute.VmStatistics;
 
@@ -310,7 +316,7 @@ public class ServerResource extends BaseCloudService {
 		}
 		
 		serverVO = convertServer(server);
-		serverVO.setVmStatistics(vmStatistics);
+		serverVO.setVmMetrics(vmStatistics);
 		serverVOList.add(serverVO);
 		
 		cloudServerVO.setProviderServerId(providerServerId);
@@ -328,6 +334,196 @@ public class ServerResource extends BaseCloudService {
 		
 	}
 	
+	@LinkResource(value = CloudServerVO.class, rel = "update")
+	@PUT
+	@Path("{providerServerId}")
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+	public void putMachineImage(@PathParam("providerServerId") String providerServerId, CloudServerVO putServer) {
+	
+		CloudServerVO cloudServerVO = new CloudServerVO();
+		ServerVO serverVO = null;
+		List<ServerVO> serverVOList = new LinkedList<ServerVO>();
+		VirtualMachine virtualMachine = null;
+
+		String serverId = providerServerId;
+		String serverMethod = putServer.getServerMethod();
+		
+		if(serverMethod.equals("enableServerMetrics")) {
+			enableServerMetrics(serverId);
+		}
+		else if(serverMethod.equals("disableServerMetrics")) {
+			disableServerMetrics(serverId);
+		}
+		else if(serverMethod.equals("startServer")) {
+			startServer(serverId);
+		}
+		else if(serverMethod.equals("stopServer")) {
+			stopServer(serverId);
+		}
+		else if(serverMethod.equals("rebootServer")) {
+			reboodServer(serverId);
+		} else {
+			logger.debug("Un-Supported ServerResource PUT Method!");
+		}
+		
+		try {
+			virtualMachine = serverSupport.getVirtualMachine(serverId);
+		} catch (InternalException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (CloudException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		serverVO = convertServer(virtualMachine);
+		serverVOList.add(serverVO);
+		
+		cloudServerVO.setProviderServerId(providerServerId);
+		cloudServerVO.setServerMethod(serverMethod);
+		cloudServerVO.setCloudProvider(provider.getProviderName());
+		cloudServerVO.setCloudName(provider.getCloudName());
+		cloudServerVO.setCloudAccountNumber(provider.getContext().getAccountNumber());
+		cloudServerVO.setCloudRegionId(provider.getContext().getRegionId());
+		cloudServerVO.setServerVOList(serverVOList);
+		
+	}
+	
+	private void enableServerMetrics(String serverId) {
+		
+		try {
+			serverSupport.enableAnalytics(serverId);
+		} catch (InternalException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (CloudException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	private void disableServerMetrics(String serverId) {
+		
+		try {
+			serverSupport.disableAnalytics(serverId);
+		} catch (InternalException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (CloudException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	private void startServer(String serverId) {
+		
+		try {
+			serverSupport.boot(serverId);
+		} catch (InternalException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (CloudException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	private void stopServer(String serverId) {
+		
+		try {
+			serverSupport.pause(serverId);
+		} catch (InternalException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (CloudException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	private void reboodServer(String serverId) {
+		
+		try {
+			serverSupport.reboot(serverId);
+		} catch (CloudException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InternalException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	} 
+	
+	@LinkResource(value = CloudServerVO.class, rel = "add")
+	@POST
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+	public Response createServer(CloudServerVO createServerVO) {
+		
+		CloudServerVO cloudServerVO = new CloudServerVO();
+		ServerVO serverVO = new ServerVO();
+		List<ServerVO> serverVOList = new LinkedList<ServerVO>();
+		VirtualMachine server = null;
+		
+		String imageId = createServerVO.getServerVOList().get(0).getProviderMachineImageId();
+		VirtualMachineProduct product = createServerVO.getServerVOList().get(0).getProduct();
+		String inZoneId = createServerVO.getServerVOList().get(0).getProviderZoneId();
+		String name = createServerVO.getServerVOList().get(0).getName();
+		String description = createServerVO.getServerVOList().get(0).getDescription();
+		String keyPair = createServerVO.getServerVOList().get(0).getKeyPairName();
+		
+		/** TODO: tbd */
+		String inVlanId = null;
+		boolean asImageSandbox = false;
+		boolean withMonitoring = true;
+		if(createServerVO.getServerVOList().get(0).getMonitoring().equals("enabled")) {
+			withMonitoring = true;
+		}
+		else if(createServerVO.getServerVOList().get(0).getMonitoring().equals("disabled")) {
+			withMonitoring = false;
+		}
+		
+		String fireWall = createServerVO.getServerVOList().get(0).getSecurityGroup();
+//		String tags = createServerVO.getServerVOList().get(0).getTags();
+		
+		try {
+			server = serverSupport.launch(imageId, product, inZoneId, name, description, keyPair, inVlanId, withMonitoring, asImageSandbox, fireWall);
+			serverVO = convertServer(server); 
+			serverVO.setKeyPairName(keyPair);
+			serverVOList.add(serverVO);
+		} catch (InternalException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (CloudException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		cloudServerVO.setProviderServerId(server.getProviderVirtualMachineId());
+		cloudServerVO.setServerMethod("createServer");
+		cloudServerVO.setCloudProvider(provider.getProviderName());
+		cloudServerVO.setCloudName(provider.getCloudName());
+		cloudServerVO.setCloudAccountNumber(provider.getContext().getAccountNumber());
+		cloudServerVO.setCloudRegionId(provider.getContext().getRegionId());
+		cloudServerVO.setServerVOList(serverVOList);
+		
+		return Response.created(URI.create("/server/" + serverVO.getProviderServerId())).build();
+		
+	}
+	
+	@LinkResource(value = CloudServerVO.class, rel = "remove")
+	@DELETE
+	@Path("{providerServerId}")
+	public void removeServer(@PathParam("providerServerId") String providerServerId) {
+		
+		try {
+			serverSupport.terminate(providerServerId);
+		} catch (InternalException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (CloudException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 	
 	public ServerVO convertServer(VirtualMachine server) {
 		
@@ -376,7 +572,22 @@ public class ServerResource extends BaseCloudService {
 		serverVO.setRootPassword(server.getRootPassword());
 		serverVO.setRootUser(server.getRootUser());
 		serverVO.setTags(server.getTags().toString());
-		serverVO.setVmStatistics(server.getVmStatistics());
+		serverVO.setVmMetrics(server.getVmStatistics());
+		
+		String securityGroup = null;
+		try {
+			securityGroup = serverSupport.listFirewalls(server.getProviderVirtualMachineId()).toString();
+		} catch (InternalException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (CloudException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		serverVO.setSecurityGroup(securityGroup);
+		
+		serverVO.setProviderZoneId(server.getProviderDataCenterId());
+		serverVO.setKeyPairName(server.getKeyPairName());
 		
 		return serverVO;
 		

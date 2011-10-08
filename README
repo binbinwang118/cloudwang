@@ -159,6 +159,21 @@ curl -v -k -X GET -H "Accept: application/json" http://localhost:8080/cloudwang/
 curl -v -k -X HEAD http://localhost:8080/cloudwang/rs/server/FIX_ME_Server_Id
 curl -v -k -X HEAD http://localhost:8080/cloudwang/rs/server/
 
+curl -v -k -X PUT -H "Content-Type: application/xml" --data '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cloudServer><serverMethod>startServer</serverMethod></cloudServer>' http://localhost:8080/cloudwang/rs/server/FIX_ME_Server_Id
+
+curl -v -k -X PUT -H "Content-Type: application/xml" --data '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cloudServer><serverMethod>stopServer</serverMethod></cloudServer>' http://localhost:8080/cloudwang/rs/server/FIX_ME_Server_Id
+
+curl -v -k -X PUT -H "Content-Type: application/xml" --data '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cloudServer><serverMethod>rebootServer</serverMethod></cloudServer>' http://localhost:8080/cloudwang/rs/server/FIX_ME_Server_Id
+
+curl -v -k -X PUT -H "Content-Type: application/xml" --data '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cloudServer><serverMethod>enableServerMetrics</serverMethod></cloudServer>' http://localhost:8080/cloudwang/rs/server/FIX_ME_Server_Id
+
+curl -v -k -X PUT -H "Content-Type: application/xml" --data '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cloudServer><serverMethod>disableServerMetrics</serverMethod></cloudServer>' http://localhost:8080/cloudwang/rs/server/FIX_ME_Server_Id
+
+curl -v -k -X POST -H "Content-Type: application/xml" --data '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cloudServer><server><providerMachineImageId>FIX_ME_MachineImage_Id</providerMachineImageId><product><cpuCount>2</cpuCount><description>Micro Instance/64-bit (t1.micro)</description><diskSizeInGb>1</diskSizeInGb><name>Micro Instance/64-bit (t1.micro)</name><productId>t1.micro</productId><ramInMb>613</ramInMb></product><name>test server</name><description>test create server</description><keyPair>FIX_ME_KeyPairName</keyPair><monitoring>enabled</monitoring><securityGroup>FIX_ME_SecurityGroupName</securityGroup></server></cloudServer>' http://localhost:8080/cloudwang/rs/server/
+
+curl -v -k -X DELETE http://localhost:8080/cloudwang/rs/server/FIX_ME_Server_Id
+
+
 
 Volume
 curl -v -k -X GET -H "Accept: application/xml"  http://localhost:8080/cloudwang/rs/volume
