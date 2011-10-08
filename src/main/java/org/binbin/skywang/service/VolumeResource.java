@@ -137,6 +137,7 @@ public class VolumeResource extends BaseCloudService {
 				throw new WebApplicationException(response);
 			} else {
 				volumeVO = convertVolume(volume);
+				volumeVOList.add(volumeVO);
 			}
 		} catch (InternalException e) {
 			// TODO Auto-generated catch block
@@ -146,8 +147,6 @@ public class VolumeResource extends BaseCloudService {
 			e.printStackTrace();
 		}
 			
-		volumeVOList.add(volumeVO);
-		
 		cloudVolumeVO.setProviderVolumeId(volumeVO.getProviderVolumeId());
 		cloudVolumeVO.setCloudAccountNumber(provider.getContext().getAccountNumber());
 		cloudVolumeVO.setCloudName(provider.getCloudName());
@@ -163,7 +162,7 @@ public class VolumeResource extends BaseCloudService {
 	
 	}
 	
-	@LinkResource(value = CloudVolumeVO.class, rel = "head")
+	@LinkResource(value = CloudVolumeVO.class, rel = "headVolume")
 	@HEAD
 	@Path("{providerVolumeId}")
 	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
@@ -196,10 +195,46 @@ public class VolumeResource extends BaseCloudService {
 		return response;	
 	}
 	
+	@LinkResource(value = CloudVolumeVO.class, rel = "headVolumeList")
+	@HEAD
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+	public Response getVolumeListHeaders(@Context UriInfo uriInfo) {
+		
+		List<Volume> volume     = null;
+		
+		ResponseBuilderImpl builder = new ResponseBuilderImpl();
+		Response response = null;
+		
+		try {
+			volume = (List<Volume>) volumeSupport.listVolumes();
+			if (volume == null) {
+				builder.type(MediaType.TEXT_PLAIN);
+				builder.entity("The requested resource is not found!");
+				builder.status(Response.Status.NOT_FOUND);
+				response = builder.build();
+				throw new WebApplicationException(response);
+			} else {
+				int volumeNumber = volume.size();
+				builder.header("volumeNumber", volumeNumber);
+				builder.status(Response.Status.OK);
+				response = builder.build();
+			}
+		} catch (InternalException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (CloudException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return response;	
+		
+	}
+
+	
 	@LinkResource(value = CloudVolumeVO.class, rel = "update")
 	@PUT
 	@Path("{providerVolumeId}")
-	@Consumes({"application/xml", "application/json"})
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
 	public void updateVolume(@PathParam("providerVolumeId") String providerVolumeId, CloudVolumeVO cloudVolumeVO, @Context UriInfo info) {
 		
 		CloudVolumeVO updateCloudVolumeVO = null;
@@ -353,6 +388,7 @@ public class VolumeResource extends BaseCloudService {
 			volumeVO.setVolumeStatus("AVAILABLE");
 		}
 		
+		/** TODO, tbd */
 		volumeVO.setBudget(0);
 		
 		volumeVO.setProviderVolumeId(volume.getProviderVolumeId());

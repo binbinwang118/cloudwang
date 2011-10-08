@@ -18,29 +18,37 @@
 
 package org.binbin.skywang.service;
 
+import java.net.URI;
 import java.util.LinkedList;
 import java.util.List;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
+
+import org.binbin.skywang.domain.CloudSnapshotVO;
+import org.binbin.skywang.domain.SnapshotVO;
+
 import org.dasein.cloud.CloudException;
 import org.dasein.cloud.InternalException;
 import org.dasein.cloud.compute.Snapshot;
 import org.dasein.cloud.compute.SnapshotSupport;
-import org.jboss.logging.Logger;
-import org.binbin.skywang.domain.SnapshotVO;
-import org.binbin.skywang.domain.CloudSnapshotVO;
-import org.binbin.skywang.service.BaseCloudService;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.HEAD;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-import javax.ws.rs.core.MediaType;
+import org.jboss.logging.Logger;
+import org.jboss.resteasy.links.AddLinks;
+import org.jboss.resteasy.links.LinkResource;
+import org.jboss.resteasy.specimpl.ResponseBuilderImpl;
 
 @Path("/snapshot")
 public class SnapshotResource extends BaseCloudService {
@@ -54,16 +62,29 @@ public class SnapshotResource extends BaseCloudService {
 		snapshotSupport = provider.getComputeServices().getSnapshotSupport();
 	}
 	
-	/** can filter with account number */
+	@AddLinks
+	@LinkResource(value = CloudSnapshotVO.class, rel = "list")
 	@GET
 	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-	public CloudSnapshotVO listSnapshot(@Context UriInfo info) {
+	public Response listSnapshot(@Context UriInfo info) {
 		
 		CloudSnapshotVO cloudSnapshotVO = new CloudSnapshotVO();	
 		List<SnapshotVO> snapshotVOList = new LinkedList<SnapshotVO>();
+		Iterable<Snapshot> snapshot		= null;
+		
+		ResponseBuilderImpl builder = new ResponseBuilderImpl();
 		
 		try {
-			Iterable<Snapshot> snapshot = snapshotSupport.listSnapshots();		
+			snapshot = snapshotSupport.listSnapshots();		
+			
+			if (snapshot == null) {
+				builder.type(MediaType.TEXT_PLAIN);
+				builder.entity("The requested resource is not found!");
+				builder.status(Response.Status.NOT_FOUND);
+				Response response = builder.build();
+				throw new WebApplicationException(response);
+			}
+			
 			for(Snapshot tmpSnapshot : snapshot) {
 				snapshotVOList.add(convertSnapshot(tmpSnapshot));
 			}
@@ -75,27 +96,48 @@ public class SnapshotResource extends BaseCloudService {
 				e.printStackTrace();
 		}
 
+		cloudSnapshotVO.setProviderSnapshotId("providerSnapshotId");
+		cloudSnapshotVO.setCloudAccountNumber(provider.getContext().getAccountNumber());
+		cloudSnapshotVO.setCloudName(provider.getCloudName());
 		cloudSnapshotVO.setCloudProvider(provider.getProviderName());
+		cloudSnapshotVO.setCloudRegionId(provider.getContext().getRegionId());
 		cloudSnapshotVO.setSnapshotMethod("listSnapshot");
 		cloudSnapshotVO.setSnapshotVOList(snapshotVOList);
 			
-		return cloudSnapshotVO;
-					
+		builder.status(Response.Status.OK);
+		builder.entity(cloudSnapshotVO);
+		Response response = builder.build();
+		return response;
+		
 	}
 	
+	@AddLinks
+	@LinkResource(value = CloudSnapshotVO.class, rel = "self")
 	@GET
 	@Path("{providerSnapshotId}")
 	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-	public CloudSnapshotVO getSnapshot(@PathParam("providerSnapshotId") String providerSnapshotId, @Context UriInfo info) {
+	public Response getSnapshot(@PathParam("providerSnapshotId") String providerSnapshotId, @Context UriInfo info) {
 		
 		CloudSnapshotVO cloudSnapshotVO = new CloudSnapshotVO();	
 		List<SnapshotVO> snapshotVOList = new LinkedList<SnapshotVO>(); 
-		
-		Snapshot snapshotDasein = null;
+		Snapshot snapshot = null;
 		SnapshotVO snapshotVO = new SnapshotVO();
 		
+		ResponseBuilderImpl builder = new ResponseBuilderImpl();
+		
 		try {
-			snapshotDasein = snapshotSupport.getSnapshot(providerSnapshotId);
+			snapshot = snapshotSupport.getSnapshot(providerSnapshotId);
+			
+			if (snapshot == null) {
+				builder.type(MediaType.TEXT_PLAIN);
+				builder.entity("The requested resource is not found!");
+				builder.status(Response.Status.NOT_FOUND);
+				Response response = builder.build();
+				throw new WebApplicationException(response);
+			} else {
+				snapshotVO = convertSnapshot(snapshot);
+				snapshotVOList.add(snapshotVO);
+			}
 		} catch (InternalException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -104,38 +146,235 @@ public class SnapshotResource extends BaseCloudService {
 			e.printStackTrace();
 		}
 		
-		snapshotVO = convertSnapshot(snapshotDasein);
-		snapshotVOList.add(snapshotVO);
-		
+		cloudSnapshotVO.setProviderSnapshotId(providerSnapshotId);
+		cloudSnapshotVO.setCloudAccountNumber(provider.getContext().getAccountNumber());
+		cloudSnapshotVO.setCloudName(provider.getCloudName());
 		cloudSnapshotVO.setCloudProvider(provider.getProviderName());
+		cloudSnapshotVO.setCloudRegionId(provider.getContext().getRegionId());
 		cloudSnapshotVO.setSnapshotMethod("getSnapshot");
 		cloudSnapshotVO.setSnapshotVOList(snapshotVOList);
-		
-		return cloudSnapshotVO;
+			
+		builder.status(Response.Status.OK);
+		builder.entity(cloudSnapshotVO);
+		Response response = builder.build();
+		return response;
 	}
 	
+	@LinkResource(value = CloudSnapshotVO.class, rel = "headSnapshot")
+	@HEAD
+	@Path("{providerSnapshotId}")
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+	public Response getSnapshotHead(@PathParam("providerSnapshotId") String providerSnapshotId, @Context UriInfo info) {
+		
+		Snapshot snapshot			= null;
+		
+		ResponseBuilderImpl builder = new ResponseBuilderImpl();
+		Response response 			= null;
+		
+		try {
+			snapshot = snapshotSupport.getSnapshot(providerSnapshotId);
+			
+			if (snapshot == null) {
+				builder.type(MediaType.TEXT_PLAIN);
+				builder.entity("The requested resource is not found!");
+				builder.status(Response.Status.NOT_FOUND);
+				response = builder.build();
+				throw new WebApplicationException(response);
+			} else {
+				builder.status(Response.Status.OK);
+				response = builder.build();
+			}
+		} catch (InternalException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (CloudException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return response;	
+	}
+	
+	@LinkResource(value = CloudSnapshotVO.class, rel = "headSnapshotList")
 	@HEAD
 	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-	public Response getSnapshotHead(@Context UriInfo uriInfo) {
-		return null;	
+	public Response getSnapshotHead(@Context UriInfo info) {
+		
+		List<Snapshot> snapshot		= null;
+		
+		ResponseBuilderImpl builder = new ResponseBuilderImpl();
+		Response response 			= null;
+		
+		try {
+			snapshot = (List<Snapshot>) snapshotSupport.listSnapshots();		
+			
+			if (snapshot == null) {
+				builder.type(MediaType.TEXT_PLAIN);
+				builder.entity("The requested resource is not found!");
+				builder.status(Response.Status.NOT_FOUND);
+				response = builder.build();
+				throw new WebApplicationException(response);
+			} else {
+				int snapshotNumber = snapshot.size();
+				builder.header("snapshotNumber", snapshotNumber);
+				builder.status(Response.Status.OK);
+				response = builder.build();
+			}
+		} catch (InternalException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+		} catch (CloudException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+		}
+		
+		return response;
 	}
 	
+	@LinkResource(value = CloudSnapshotVO.class, rel = "update")
+	@PUT
+	@Path("{providerSnapshotId}")
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+	public void putSnapshot(@PathParam("providerSnapshotId") String providerSnapshotId, CloudSnapshotVO putSnapshot) {
+		
+		CloudSnapshotVO cloudSnapshotVO = new CloudSnapshotVO();
+		List<SnapshotVO> snapshotVOList = new LinkedList<SnapshotVO>();
+		
+		SnapshotVO snapshotVO	= null;
+		Snapshot snapshot 		= null;
+		String snapshotMethod 	= null;
+
+		String snapshotId 		= providerSnapshotId;
+		boolean isPublic 		= putSnapshot.getSnapshotVOList().get(0).isPublic();
+		String shareAccount 	=  putSnapshot.getSnapshotVOList().get(0).getShareProviderAccounts();
+		
+		try {
+			snapshot = snapshotSupport.getSnapshot(snapshotId);
+		} catch (CloudException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InternalException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		snapshotVO 					  		   = convertSnapshot(snapshot);
+		Iterable<String> shareProviderAccounts = null;
+		
+		if(shareAccount == null) {
+			if(isPublic) {
+				snapshotMethod = "makeSnapshotPublic";
+				makeSnapshotPublic(snapshotId);
+				snapshotVO.setPublic(true);
+			} else {
+				snapshotMethod = "makeSnapshotPrivate";
+				makeSnapshotPrivate(snapshotId);
+				snapshotVO.setPublic(false);
+			}
+		} else {
+			try {
+				if(isPublic) {
+					snapshotMethod = "addSnapshotShareAccount";
+					addSnapshotShareAccount(snapshotId, shareAccount);
+					shareProviderAccounts = snapshotSupport.listShares(snapshotId);
+					snapshotVO.setShareProviderAccounts(shareProviderAccounts.toString());
+				} else {
+					snapshotMethod = "removeSnapshotShareAccount";
+					removeSnapshotShareAccount(snapshotId, shareAccount);
+					shareProviderAccounts = snapshotSupport.listShares(snapshotId);
+					snapshotVO.setShareProviderAccounts(shareProviderAccounts.toString());
+				}
+			} catch (InternalException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (CloudException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		snapshotVOList.add(snapshotVO);
+		
+		cloudSnapshotVO.setProviderSnapshotId(providerSnapshotId);
+		cloudSnapshotVO.setSnapshotMethod(snapshotMethod);
+		cloudSnapshotVO.setCloudProvider(provider.getProviderName());
+		cloudSnapshotVO.setCloudName(provider.getCloudName());
+		cloudSnapshotVO.setCloudAccountNumber(provider.getContext().getAccountNumber());
+		cloudSnapshotVO.setCloudRegionId(provider.getContext().getRegionId());
+		cloudSnapshotVO.setSnapshotVOList(snapshotVOList);
+		
+	}
+	
+	private void makeSnapshotPublic(String providerSnapshotId) {
+		
+		try {
+			snapshotSupport.shareSnapshot(providerSnapshotId, null, true);
+		} catch (CloudException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InternalException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	private void makeSnapshotPrivate(String providerSnapshotId) {
+		
+		try {
+			snapshotSupport.shareSnapshot(providerSnapshotId, null, false);
+		} catch (CloudException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InternalException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	private void addSnapshotShareAccount(String providerSnapshotId, String accountNumber) {
+		
+		try {
+			snapshotSupport.shareSnapshot(providerSnapshotId, accountNumber, true);
+		} catch (CloudException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InternalException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+	
+	private void removeSnapshotShareAccount(String providerSnapshotId, String accountNumber) {
+		
+		try {
+			snapshotSupport.shareSnapshot(providerSnapshotId, accountNumber, false);
+		} catch (CloudException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InternalException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	@LinkResource(value = CloudSnapshotVO.class, rel = "add")
 	@POST
 	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-	public CloudSnapshotVO createSnapshot(CloudSnapshotVO createSnapshot) {
+	public Response createSnapshot(CloudSnapshotVO createSnapshot) {
 		
-		CloudSnapshotVO results = new CloudSnapshotVO();
-		String providerSnapshotId = null;
+		CloudSnapshotVO cloudSnapshotVO = new CloudSnapshotVO();
 		SnapshotVO snapshotVO = new SnapshotVO();
 		List<SnapshotVO> snapshotVOList = new LinkedList<SnapshotVO>();
 		
+		String providerSnapshotId = null;
 		String ofVolume = createSnapshot.getSnapshotVOList().get(0).getVolumeId();
 		String description = createSnapshot.getSnapshotVOList().get(0).getDescription();
 		
 		try {
 			providerSnapshotId = snapshotSupport.create(ofVolume, description);
 			snapshotVO = convertSnapshot(snapshotSupport.getSnapshot(providerSnapshotId));
+			snapshotVOList.add(snapshotVO);
 		} catch (InternalException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -143,18 +382,20 @@ public class SnapshotResource extends BaseCloudService {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
-		snapshotVOList.add(snapshotVO);
-		results.setSnapshotMethod("createSnapshot");
-		results.setCloudProvider(provider.getCloudName());
-		results.setSnapshotVOList(snapshotVOList);
 		
-		return results;
+		cloudSnapshotVO.setProviderSnapshotId(snapshotVO.getProviderSnapshotId());
+		cloudSnapshotVO.setCloudAccountNumber(provider.getContext().getAccountNumber());
+		cloudSnapshotVO.setCloudName(provider.getCloudName());
+		cloudSnapshotVO.setCloudProvider(provider.getProviderName());
+		cloudSnapshotVO.setCloudRegionId(provider.getContext().getRegionId());
+		cloudSnapshotVO.setSnapshotMethod("createSnapshot");
+		cloudSnapshotVO.setSnapshotVOList(snapshotVOList);
+		
+		return Response.created(URI.create("/snapshot/" + snapshotVO.getProviderSnapshotId())).build();
 	
-//		return Response.created(URI.create("/snapshot/" + snapshotVO.getProviderSnapshotId())).build();
-		
 	}
 	
+	@LinkResource(value = CloudSnapshotVO.class, rel = "remove")
 	@DELETE
 	@Path("{providerSnapshotId}")
 	public void removeSnapshot(@PathParam("providerSnapshotId") String providerSnapshotId) {
@@ -171,35 +412,38 @@ public class SnapshotResource extends BaseCloudService {
 	}
 	
 	public SnapshotVO convertSnapshot(Snapshot snapshot) {
+		
 		SnapshotVO snapshotVO = new SnapshotVO();
 		
-		snapshotVO.setArray(null);
-
-		if(snapshot.getCurrentState().toString().equals("AVAILABLE")) {
-			snapshotVO.setAvailable(true);
-		}else {
-			snapshotVO.setAvailable(false);
-		}
-		snapshotVO.setBudget(0);
-		snapshotVO.setCloud(provider.getCloudName());
-		snapshotVO.setCurrentState(snapshot.getCurrentState());
-		snapshotVO.setCustomer(null);
-		snapshotVO.setDescription(snapshot.getDescription());
+		snapshotVO.setSnapshotId("tbd");
 		snapshotVO.setEncrypted(false);
-		snapshotVO.setLabel(null);
-		snapshotVO.setName(null);
-		snapshotVO.setOwningAccount(null);
-		snapshotVO.setOwningCloudAccountId(0);
-		snapshotVO.setOwningCloudAccountNumber(provider.getContext().getAccountNumber());
-		snapshotVO.setOwningGroups(null);
-		snapshotVO.setOwningUser(null);
-		snapshotVO.setProgress(snapshot.getProgress());
-		snapshotVO.setProviderId(provider.getContext().getProviderName());
-		snapshotVO.setProviderSnapshotId(snapshot.getProviderSnapshotId());
 		
+		/**
+		 * todo, removable depending on 
+		 * 1) owned by me, 
+		 * 2) is not used by any existing machineImage (template) 
+		 * */
+		snapshotVO.setRemovable(false);
+		
+		/** TODO, tbd */
+		snapshotVO.setBudget(0);
+		
+		snapshotVO.setProviderSnapshotId(snapshot.getProviderSnapshotId());
+		snapshotVO.setName(snapshot.getName());
+		snapshotVO.setDescription(snapshot.getDescription());
+		snapshotVO.setSizeInGb(snapshot.getSizeInGb());
+		snapshotVO.setSnapshotTimestamp(snapshot.getSnapshotTimestamp());
+		snapshotVO.setCurrentState(snapshot.getCurrentState());
+		snapshotVO.setProgress(snapshot.getProgress());
+		
+		/** TODO, tbd */
+		snapshotVO.setSharable(true);
+		
+		boolean isPublic = false;
+		String shareProviderAccounts = null;
 		try {
-			boolean publics = snapshotSupport.isPublic(snapshot.getProviderSnapshotId());
-			snapshotVO.setPublics(publics);
+			isPublic = snapshotSupport.isPublic(snapshot.getProviderSnapshotId());
+			shareProviderAccounts = snapshotSupport.listShares(snapshot.getProviderSnapshotId()).toString();
 		} catch (InternalException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -208,16 +452,9 @@ public class SnapshotResource extends BaseCloudService {
 			e.printStackTrace();
 		}
 		
-		snapshotVO.setRegionId(snapshot.getRegionId());
-		
-		/**
-		 * todo, removable depending on 1) owned by me, 2) used by existing template 
-		 * */
-		snapshotVO.setRemovable(false);
-		snapshotVO.setSharable(true);
-		snapshotVO.setSizeInGb(snapshot.getSizeInGb());
-		snapshotVO.setSnapshotId(0);
-		snapshotVO.setSnapshotTimestamp(snapshot.getSnapshotTimestamp());
+		snapshotVO.setPublic(isPublic);
+		snapshotVO.setShareProviderAccounts(shareProviderAccounts);
+		snapshotVO.setProviderOwnerId(snapshot.getOwner());
 		snapshotVO.setVolumeId(snapshot.getVolumeId());
 		
 		return snapshotVO;

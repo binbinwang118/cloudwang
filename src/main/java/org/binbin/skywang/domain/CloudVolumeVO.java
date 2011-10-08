@@ -42,10 +42,10 @@ public class CloudVolumeVO {
 	private String					cloudName;
 	private String 					cloudAccountNumber;
 	private String 					cloudRegionId;
-	protected List<VolumeVO> 		volumeVOList;
+	private List<VolumeVO> 			volumeVOList;
 	private String					providerVolumeId;
 	private RESTServiceDiscovery 	rest;
-	protected List<Link> 			links;
+	private List<Link> 				links;
 	
 	public CloudVolumeVO() {}
 
