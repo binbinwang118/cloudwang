@@ -411,7 +411,7 @@ public class SnapshotResource extends BaseCloudService {
 		}
 	}
 	
-	public SnapshotVO convertSnapshot(Snapshot snapshot) {
+	private SnapshotVO convertSnapshot(Snapshot snapshot) {
 		
 		SnapshotVO snapshotVO = new SnapshotVO();
 		

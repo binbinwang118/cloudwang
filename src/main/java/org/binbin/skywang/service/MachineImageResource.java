@@ -528,7 +528,7 @@ public class MachineImageResource extends BaseCloudService {
 	}
 	
 	
-	public MachineImageVO convertMachineImage(MachineImage machineImage) {
+	private MachineImageVO convertMachineImage(MachineImage machineImage) {
 		
 		MachineImageVO machineImageVO = new MachineImageVO();
 		

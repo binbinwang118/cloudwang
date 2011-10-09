@@ -218,3 +218,27 @@ curl -v -k -X DELETE http://localhost:8080/cloudwang/rs/snapshot/FIX_ME_Snapshot
 
 
 
+Firewall (SecurityGroup)
+curl -v -k -X GET -H "Accept: application/xml" http://127.0.0.1:8080/cloudwang/rs/firewall/
+curl -v -k -X GET -H "Accept: application/json" http://127.0.0.1:8080/cloudwang/rs/firewall/
+
+curl -v -k -X GET -H "Accept: application/xml" http://127.0.0.1:8080/cloudwang/rs/firewall/FIX_ME_FirewallId
+curl -v -k -X GET -H "Accept: application/json" http://127.0.0.1:8080/cloudwang/rs/firewall/FIX_ME_FirewallId
+
+curl -v -k -X HEAD http://localhost:8080/cloudwang/rs/firewall/FIX_ME_FirewallId
+curl -v -k -X HEAD http://localhost:8080/cloudwang/rs/firewall/
+
+
+curl -v -k -X PUT -H "Content-Type: application/xml" --data '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cloudFirewall><firewallMethod>removeFirewallRules</firewallMethod><firewall><firewallRules><protocol>TCP</protocol><cidr>0.0.0.0/0</cidr><startPort>22</startPort><endPort>22</endPort></firewallRules></firewall></cloudFirewall>' http://localhost:8080/cloudwang/rs/firewall/FIX_ME_FirewallId
+
+curl -v -k -X PUT -H "Content-Type: application/xml" --data '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cloudFirewall><firewallMethod>addFirewallRules</firewallMethod><firewall><firewallRules><protocol>TCP</protocol><cidr>192.168.1/25</cidr><startPort>22</startPort><endPort>80</endPort></firewallRules></firewall></cloudFirewall>' http://localhost:8080/cloudwang/rs/firewall/FIX_ME_FirewallId
+
+
+curl -v -k -X POST -H "Content-Type: application/xml" --data '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cloudFirewall><firewallMethod>addFirewallRules</firewallMethod><firewall><name>test firewall</name><description>test create firewall</description></firewall></cloudFirewall>' http://localhost:8080/cloudwang/rs/firewall
+
+curl -v -k -X DELETE http://localhost:8080/cloudwang/rs/firewall/FIX_ME_FirewallId
+
+
+
+
+

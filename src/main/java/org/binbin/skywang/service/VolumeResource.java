@@ -373,7 +373,7 @@ public class VolumeResource extends BaseCloudService {
 		
 	}
 	   
-	public VolumeVO convertVolume(Volume volume) {
+	private VolumeVO convertVolume(Volume volume) {
 		
 		VolumeVO volumeVO = new VolumeVO();
 		

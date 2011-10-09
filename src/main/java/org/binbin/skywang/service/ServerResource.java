@@ -338,13 +338,16 @@ public class ServerResource extends BaseCloudService {
 	@PUT
 	@Path("{providerServerId}")
 	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-	public void putMachineImage(@PathParam("providerServerId") String providerServerId, CloudServerVO putServer) {
+	public Response putMachineImage(@PathParam("providerServerId") String providerServerId, CloudServerVO putServer) {
 	
 		CloudServerVO cloudServerVO = new CloudServerVO();
 		ServerVO serverVO = null;
 		List<ServerVO> serverVOList = new LinkedList<ServerVO>();
 		VirtualMachine virtualMachine = null;
 
+		ResponseBuilderImpl builder = new ResponseBuilderImpl();
+		Response response 			= null;
+		
 		String serverId = providerServerId;
 		String serverMethod = putServer.getServerMethod();
 		
@@ -363,7 +366,11 @@ public class ServerResource extends BaseCloudService {
 		else if(serverMethod.equals("rebootServer")) {
 			reboodServer(serverId);
 		} else {
-			logger.debug("Un-Supported ServerResource PUT Method!");
+			builder.type(MediaType.TEXT_PLAIN);
+			builder.entity("Un-supported ServerResource PUT method!");
+			builder.status(Response.Status.BAD_REQUEST);
+			response = builder.build();
+			throw new WebApplicationException(response);
 		}
 		
 		try {
@@ -385,6 +392,12 @@ public class ServerResource extends BaseCloudService {
 		cloudServerVO.setCloudAccountNumber(provider.getContext().getAccountNumber());
 		cloudServerVO.setCloudRegionId(provider.getContext().getRegionId());
 		cloudServerVO.setServerVOList(serverVOList);
+		
+		builder.status(Response.Status.OK);
+		builder.entity(cloudServerVO);
+		response = builder.build();
+		
+		return response;
 		
 	}
 	
@@ -525,7 +538,7 @@ public class ServerResource extends BaseCloudService {
 		}
 	}
 	
-	public ServerVO convertServer(VirtualMachine server) {
+	private ServerVO convertServer(VirtualMachine server) {
 		
 		ServerVO serverVO = new ServerVO();
 
