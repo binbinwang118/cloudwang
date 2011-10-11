@@ -120,6 +120,7 @@
   </dependencies>
   
   <build>
+    <!--finalName>cloudwang-${version}</finalName-->
     <finalName>cloudwang</finalName>
         <plugins>
             <plugin>
@@ -156,6 +157,7 @@
         	<configuration>
           	    <jbossHome>/var/lib/jboss-as/</jbossHome>
           	    <serverName>binbin</serverName>
+            	    <!--fileName>target/cloudwang-${version}.war</fileName-->
             	    <fileName>target/cloudwang.war</fileName>
         	</configuration>
       	    </plugin>
