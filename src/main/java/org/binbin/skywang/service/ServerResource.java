@@ -2,6 +2,7 @@ package org.binbin.skywang.service;
 
 
 import java.net.URI;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -9,14 +10,18 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
@@ -88,7 +93,7 @@ public class ServerResource extends BaseCloudService {
 		cloudServerVO.setCloudAccountNumber(provider.getContext().getAccountNumber());
 		cloudServerVO.setCloudRegionId(provider.getContext().getRegionId());
 		cloudServerVO.setServerVOList(serverVOList);
-
+	      
 		builder.status(Response.Status.OK);
 		builder.entity(cloudServerVO);
 		Response response = builder.build();
@@ -100,12 +105,15 @@ public class ServerResource extends BaseCloudService {
 	@GET
 	@Path("{providerServerId}")
 	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-	public Response getServer(@PathParam("providerServerId") String providerServerId) {
+	public Response getServer(@PathParam("providerServerId") String providerServerId,
+							  @HeaderParam("If-None-Match") String sent,
+							  @Context Request request) {
 		
 		CloudServerVO cloudServerVO = new CloudServerVO();
 		List<ServerVO> serverVOList = new LinkedList<ServerVO>();
 		
 		VirtualMachine server = null;
+		ServerVO	   serverVO = null;
 		ResponseBuilderImpl builder = new ResponseBuilderImpl();
 		
 		try {
@@ -117,10 +125,7 @@ public class ServerResource extends BaseCloudService {
 				builder.status(Response.Status.NOT_FOUND);
 				Response response = builder.build();
 				throw new WebApplicationException(response);
-			} else {
-				serverVOList.add(convertServer(server));
 			}
-			
 		} catch (InternalException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -128,6 +133,31 @@ public class ServerResource extends BaseCloudService {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		if (sent == null) logger.info("No If-None-Match sent by client");
+		
+		/**
+		 * TODO
+		 * utilize better way to set the ETag instead of utilizing the current status of server
+		 * */
+		EntityTag tag = new EntityTag(server.getCurrentState().toString());
+		
+		CacheControl cc = new CacheControl();
+		cc.setPrivate(true);
+//		cc.setNoStore(true);
+		cc.setMaxAge(60);
+		
+		builder = (ResponseBuilderImpl) request.evaluatePreconditions(tag);
+		if(builder != null) {
+			logger.info("** revalidation on the server was successful");
+			builder.cacheControl(cc);
+			return builder.build();
+		}
+		
+		// Preconditions not met!
+		serverVO = convertServer(server);
+		serverVO.setLastViewed(new Date().toString());
+		serverVOList.add(serverVO);
 		
 		cloudServerVO.setProviderServerId(providerServerId);
 		cloudServerVO.setServerMethod("getServer");
@@ -137,8 +167,11 @@ public class ServerResource extends BaseCloudService {
 		cloudServerVO.setCloudRegionId(provider.getContext().getRegionId());
 		cloudServerVO.setServerVOList(serverVOList);
 		
+		builder = new ResponseBuilderImpl();
 		builder.status(Response.Status.OK);
 		builder.entity(cloudServerVO);
+		builder.cacheControl(cc);
+		builder.tag(tag);
 		Response response = builder.build();
 		return response;
 		

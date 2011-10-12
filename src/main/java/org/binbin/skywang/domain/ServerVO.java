@@ -18,6 +18,7 @@
 
 package org.binbin.skywang.domain;
 
+import java.util.Date;
 import java.util.List;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
@@ -35,7 +36,7 @@ import org.dasein.cloud.compute.VmStatistics;
 		"product", "monitoring", "vmMetrics",  "clonable", "pausable", "rebootable", "removable", 
 		"creationTimestamp", "lastBootTimestamp", "lastPauseTimestamp", "terminationTimestamp",  "providerMachineImageId", 
 		"publicIpAddresses", "publicDnsAddress",   "privateDnsAddress",  "privateIpAddresses", "providerAssignedIpAddressId", 
-		"providerVlanId",  "rootPassword",  "rootUser", "tags", "securityGroup", "providerZoneId", "keyPairName"})
+		"providerVlanId",  "rootPassword",  "rootUser", "tags", "securityGroup", "providerZoneId", "keyPairName", "lastViewed"})
 public class ServerVO {
 	
 	private String				  serverId;
@@ -74,6 +75,7 @@ public class ServerVO {
     private String				  securityGroup;
     private String				  providerZoneId;
     private String				  keyPairName;
+    private String 				  lastViewed = new Date().toString();
     
 	public ServerVO() { }
 
@@ -306,6 +308,11 @@ public class ServerVO {
 		return keyPairName;
 	}
 
+	@XmlElement
+	public String getLastViewed() {
+		return lastViewed;
+	}
+
 
 	public void setServerId(String serverId) {
 		this.serverId = serverId;
@@ -445,5 +452,9 @@ public class ServerVO {
 	
 	public void setKeyPairName(String keyPairName) {
 		this.keyPairName = keyPairName;
+	}
+
+	public void setLastViewed(String lastViewed) {
+		this.lastViewed = lastViewed;
 	}
 }
